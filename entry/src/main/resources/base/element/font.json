@@ -1,0 +1,20 @@
+{
+  "float": [
+    {
+      "name": "color",
+      "value": "#fff"
+    },
+    {
+      "name": "fontSize",
+      "value": "18"
+    },
+    {
+      "name": "fontWeight",
+      "value": "normal"
+    },
+    {
+      "name": "fontFamily",
+      "value": "sans-serif"
+    }
+  ]
+}
