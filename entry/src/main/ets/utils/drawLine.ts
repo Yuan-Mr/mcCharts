@@ -109,10 +109,12 @@ class DrawLine extends Chart {
         if (labelShow) {
           ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
           ctx.fillStyle = labelColor
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
           const text = String(obj.num)
           const textWidth = ctx.measureText(text).width; // 获取文字的长度
           const textHeight = ctx.measureText(text).height; // 获取文字的长度
-          ctx.fillText(text, obj.x - textWidth / 2, -obj.h - textHeight / 2);
+          ctx.fillText(text, obj.x, -obj.h - textHeight);
         }
       }
     }
@@ -185,10 +187,12 @@ class DrawLine extends Chart {
                 obj.isLabel = true
                 ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
                 ctx.fillStyle = labelColor
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
                 const text = String(obj.num)
                 const textWidth = ctx.measureText(text).width; // 获取文字的长度
                 const textHeight = ctx.measureText(text).height; // 获取文字的长度
-                ctx.fillText(text, obj.x + textWidth / 2, -obj.h - textHeight);
+                ctx.fillText(text, obj.x, -obj.h - textHeight);
               }
             }
           }
@@ -374,11 +378,13 @@ class DrawLine extends Chart {
         const {color, fontWeight, fontSize, fontFamily} = axisLabel
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         this.ctx.fillStyle = color
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
         obj = formatter ? String(formatter(obj)) : obj
         const txtW = this.ctx.measureText(obj).width; // 获取文字的长度
         const txtH = this.ctx.measureText(obj).height; // 获取文字的长度
-        const textX = x - xs - txtW / 2
-        const textY = axisTick.length + 5 + txtH / 2
+        const textX = x - xs
+        const textY = axisTick.length + 5
         ctx.fillText(obj, textX, textY)
       })
     }
@@ -394,6 +400,7 @@ class DrawLine extends Chart {
         const {color, fontWeight, fontSize, fontFamily} = nameTextStyle
         this.ctx.fillStyle = color
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+        ctx.textBaseline = 'middle'
         nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
         const nameW = this.ctx.measureText(this.yAxis.name).width; // 获取文字的长度
         ctx.fillText(this.yAxis.name, this.cPaddingL - nameW / 2, this.cPaddingT)
@@ -411,13 +418,13 @@ class DrawLine extends Chart {
 
       for (let i = 0; i <= yl; i++) {
         if (axisTick.show) {
-          const { color, width } = axisTick.lineStyle;
+          const { color, width, length } = axisTick.lineStyle;
           ctx.beginPath()
           this.setCtxStyle({
             strokeStyle: color,
             lineWidth: width
           })
-          ctx.moveTo(-5, -Math.floor(ys * i))
+          ctx.moveTo(-axisTick.length, -Math.floor(ys * i))
           ctx.lineTo(0, -Math.floor(ys * i))
           ctx.stroke()
         }
@@ -438,10 +445,12 @@ class DrawLine extends Chart {
         this.ctx.fillStyle = color
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         ctx.textAlign = 'right'
+        ctx.textBaseline = 'middle'
         let dim = Math.floor(this.info.step * i + this.info.min)
         let txt = String(this.yAxis.formatter ? this.yAxis.formatter(dim) : dim)
         const txtH = this.ctx.measureText(txt).height; // 获取文字的长度
-        ctx.fillText(txt, -8, -ys * i + txtH / 2)
+        const interval = axisTick.show ? -(axisTick.interval + axisTick.length) : -8
+        ctx.fillText(txt, interval, -ys * i)
       }
 
       // y轴
@@ -451,13 +460,13 @@ class DrawLine extends Chart {
           strokeStyle: color,
           lineWidth: width
         })
-        ctx.save()
         ctx.beginPath()
         ctx.moveTo(0, 0)
         ctx.lineTo(0, this.cPaddingL + this.cPaddingT - this.H + nameH)
         ctx.stroke()
         // ctx.restore()
       }
+      ctx.save()
       ctx.restore()
     }
   }

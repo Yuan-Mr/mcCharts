@@ -70,6 +70,7 @@ const xAxisOpt: AxisInterface = {
 }
 
 const yAxisOpt: AxisInterface = {
+  name: '',
   nameTextStyle: {
     color: '#333',
     fontWeight: 'normal',

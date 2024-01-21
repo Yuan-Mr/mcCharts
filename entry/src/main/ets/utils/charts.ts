@@ -104,16 +104,17 @@ export class Chart {
   }
 
   drawLegend (data) {
-    const {itemGap, itemTextGap, itemWidth, itemHeight, textStyle, left, top} = this.legend
-    let sp = 0
-    let item; let ctx = this.ctx
+    const {show, itemGap, itemTextGap, itemWidth, itemHeight, textStyle, left, top} = this.legend
+    if (!show) return;
+    let sp = 0;
+    let item; let ctx = this.ctx;
     const {color, fontWeight, fontSize, fontFamily} = textStyle
     // 先计算出整体的宽度，然后设置居中
     for (let i = 0; i < data.length; i++) {
       item = data[i]
-      ctx.textBaseline = "middle";
       ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
       ctx.textAlign = 'left'
+      ctx.textBaseline = "middle";
       ctx.fillStyle = color
       const tw = ctx.measureText(item.name).width
       sp += itemWidth + tw + itemTextGap + itemGap
@@ -125,16 +126,16 @@ export class Chart {
     for (let i = 0; i < data.length; i++) {
       item = data[i]
       ctx.fillStyle = item.color
-      roundRect(ctx, sp, 0, itemWidth, itemHeight, 2)
+      roundRect(ctx, sp, percentageConversion(top), itemWidth, itemHeight, 2)
       ctx.globalAlpha = item.hide ? 0.3 : 1
       ctx.fill()
-      ctx.textBaseline = "middle";
       ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
       ctx.textAlign = 'left'
+      ctx.textBaseline = "middle";
       ctx.fillStyle = color
       const tw = ctx.measureText(item.name).width
       const th = ctx.measureText(item.name).height
-      ctx.fillText(item.name, itemWidth + sp + itemTextGap, th / 2)
+      ctx.fillText(item.name, itemWidth + sp + itemTextGap, percentageConversion(top) + itemHeight / 2)
       // 计算每個图例的距离：上一个的图例宽度 + 上一个的图例文本与图例间隔 + 图例之间的间隔
       sp += itemWidth + tw + itemTextGap + itemGap
       this.legendData.push({
