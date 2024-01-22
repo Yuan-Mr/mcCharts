@@ -41,7 +41,7 @@ class DrawLine extends Chart {
       callback(true, e, {
         x: obj.x,
         W: this.W,
-        H: this.H
+        H: this.H,
       }, this.xAxis.data[index], arr, this.tooltip)
     } else {
       this.clearGrid();
@@ -68,10 +68,12 @@ class DrawLine extends Chart {
     this.drawY()
     // 画标志线
     if (typeof index === 'number') {
+      const { axisPointer = {} } = that.tooltip
+      const { type, lineStyle, shadowStyle } = axisPointer
       ctx.beginPath()
       obj = that.animateArr[0].data[index]
-      ctx.lineWidth = 1
-      ctx.strokeStyle = 'rgba(150,150,150,0.4)'
+      ctx.lineWidth = lineStyle.width
+      ctx.strokeStyle = lineStyle.color
       ctx.moveTo(obj.x, -(that.H - that.cPaddingT - that.cPaddingB - nameH))
       ctx.lineTo(obj.x, 0)
       ctx.stroke()

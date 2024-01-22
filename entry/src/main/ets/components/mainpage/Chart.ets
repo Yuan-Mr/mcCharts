@@ -11,12 +11,13 @@ export struct Chart {
   @State isTooltipShow: boolean = false
   @State tooltipInfo: InterfaceObj = {}
   showInfo (flag, event = {}, pos?, title?, arr?, tooltipInfo?) {
+    this.isTooltipShow = flag
+    const {show, type = 'default'} = tooltipInfo || {}
+    if (!show) return;
     this.click && this.click(event, flag ? {
       title,
       data: arr
     } : {})
-    this.isTooltipShow = flag
-    const {show, type = 'default'} = tooltipInfo || {}
     if (type !== 'default') {
       this.tooltipClick && this.tooltipClick(event, flag ? { title, pos, data: arr } : {})
     }

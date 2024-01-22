@@ -2,6 +2,7 @@ import { AxisInterface, LegendInterface, TooltipInterface, SeriesInterface } fro
 
 const seriesOpt: SeriesInterface = {
   name: '',
+  color: '',
   lineStyle: {
     color: '',
     width: 1,

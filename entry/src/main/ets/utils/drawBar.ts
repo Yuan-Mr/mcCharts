@@ -251,7 +251,7 @@ class DrawBar extends Chart {
           this.series.forEach((amItem, k) => {
             if (k < i) {
               // 找到上一条对应的数据
-              const dataItem = amItem.data[j]
+              const dataItem = Number(amItem.data[j])
               if ((dataItem >= 0 && d >= 0) || (dataItem < 0 && d < 0)) {
                 new_data[j] += dataItem
               }
@@ -349,7 +349,7 @@ class DrawBar extends Chart {
     // x轴
     ctx.save()
     ctx.translate(cPaddingL, H - cPaddingT)
-    const { axisTick, splitLine, axisLine = {}, axisLabel, data } = this.xAxis;
+    const { axisTick, splitLine, axisLine = {}, axisLabel, formatter, data } = this.xAxis;
     const {show: axisLineShow = true} = axisLine
     if (axisLineShow) {
       const { color = '#333', width = 1  } = axisLine.lineStyle;
@@ -382,6 +382,7 @@ class DrawBar extends Chart {
         const {color, fontWeight, fontSize, fontFamily} = axisLabel
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         this.ctx.fillStyle = color
+        obj = formatter ? String(formatter(obj)) : obj
         const txtW = this.ctx.measureText(obj).width; // 获取文字的长度
         ctx.fillText(obj, x - xs / 2 - txtW / 2, 12)
       })
@@ -415,8 +416,9 @@ class DrawBar extends Chart {
         this.ctx.fillStyle = color
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
+        ctx.textBaseline = 'middle'
         const nameW = this.ctx.measureText(this.yAxis.name).width; // 获取文字的长度
-        ctx.fillText(this.yAxis.name, this.cPaddingL - nameW / 2, this.cPaddingT)
+        ctx.fillText(this.yAxis.name, this.cPaddingL - nameW / 2, this.cPaddingT - 5)
       }
 
       let xdis = this.W - this.cPaddingL - this.cPaddingR
@@ -436,7 +438,7 @@ class DrawBar extends Chart {
             strokeStyle: color,
             lineWidth: width
           })
-          ctx.moveTo(-5, -Math.floor(ys * i))
+          ctx.moveTo(-axisTick.length, -Math.floor(ys * i))
           ctx.lineTo(0, -Math.floor(ys * i))
           ctx.stroke()
         }
@@ -460,7 +462,8 @@ class DrawBar extends Chart {
         let dim = Math.floor(this.info.step * i + this.info.min)
         let txt = String(this.yAxis.formatter ? this.yAxis.formatter(dim) : dim)
         const txtH = this.ctx.measureText(txt).height; // 获取文字的长度
-        ctx.fillText(txt, -8, -ys * i)
+        const interval = axisTick.show ? -(axisTick.interval + axisTick.length) : -8
+        ctx.fillText(txt, interval, -ys * i)
       }
 
       // y轴

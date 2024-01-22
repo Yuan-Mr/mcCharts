@@ -100,30 +100,108 @@ struct Index {
       //   }
       // })
 
-      // 折线图-legend属性
+      // // 折线图-legend属性
+      // McLineChart({
+      //   options: {
+      //     xAxis:{
+      //       data:['周一','周二','周三','周四','周五','周六','周日']
+      //     },
+      //     legend: {
+      //       show: true,
+      //       left: '50%',
+      //       top: '2%',
+      //       itemGap: 10, // 图例每项之间的间隔。横向布局时为水平间隔，纵向布局时为纵向间隔。
+      //       itemTextGap: 10, // 图例图例之间的间隔。
+      //       itemWidth: 8, // 图例标记的图形宽度。
+      //       itemHeight: 8, // 图例标记的图形高度。
+      //       textStyle: {
+      //         color: '#000',
+      //         fontWeight: 'normal',
+      //         fontFamily: 'sans-serif',
+      //         fontSize: 24
+      //       }
+      //     },
+      //     series:[
+      //       {
+      //         name:'最高气温',
+      //         data:[11, 11, 50, 30, 12, 130, 10]
+      //       }
+      //     ]
+      //   }
+      // })
+
+      // // 折线图-tooltip属性
+      // McLineChart({
+      //   options: {
+      //     tooltip: {
+      //       show: true,
+      //       type: 'default', // 渲染类型。可选值：default（默认）、custom（自定义）
+      //       axisPointer: {
+      //         type: 'line',
+      //         lineStyle: {
+      //           color: '#000',
+      //           width: 2,
+      //           type: 'solid'
+      //         }
+      //       },
+      //       backgroundColor: '#97cccccc',
+      //       borderColor: '#333',
+      //       borderWidth: 1,
+      //       padding: 20,
+      //       textStyle: {
+      //         color: '#000',
+      //         fontWeight: 'normal',
+      //         fontFamily: 'sans-serif',
+      //         fontSize: 18
+      //       }
+      //     },
+      //     xAxis:{
+      //       data:['周一','周二','周三','周四','周五','周六','周日']
+      //     },
+      //     series:[
+      //       {
+      //         name:'最高气温',
+      //         data:[11, 11, 50, 30, 12, 130, 10]
+      //       }
+      //     ]
+      //   }
+      // })
+
+      // 折线图-series属性
       McLineChart({
         options: {
           xAxis:{
             data:['周一','周二','周三','周四','周五','周六','周日']
           },
-          legend: {
-            show: true,
-            left: '50%',
-            top: '2%',
-            itemGap: 10, // 图例每项之间的间隔。横向布局时为水平间隔，纵向布局时为纵向间隔。
-            itemTextGap: 10, // 图例图例之间的间隔。
-            itemWidth: 8, // 图例标记的图形宽度。
-            itemHeight: 8, // 图例标记的图形高度。
-            textStyle: {
-              color: '#000',
-              fontWeight: 'normal',
-              fontFamily: 'sans-serif',
-              fontSize: 24
-            }
-          },
-          series:[
+          series: [
             {
               name:'最高气温',
+              color: '#ff2659f5',
+              lineStyle: {
+                color: '#ff2659f5',
+                width: 2,
+                type: 'solid'
+              },
+              label: {
+                show: true,
+                color: '#fffa6262',
+                fontWeight: '600',
+                fontFamily: 'sans-serif',
+                position: '',
+                fontSize: 30,
+                formatter: (params) => {
+                  return params.name
+                },
+                distanceToLabelLine: 10
+              },
+              itemStyle: {
+                symbol: 'solidCircle',
+                symbolSize: 4,
+                symbolColor: '',
+                borderWidth: 0,
+                borderType: 'solid',
+                borderColor: ''
+              },
               data:[11, 11, 50, 30, 12, 130, 10]
             }
           ]

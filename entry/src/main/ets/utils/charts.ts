@@ -10,7 +10,7 @@ export class Chart {
   ctx: any;
   W: number;
   H: number;
-  cPaddingT: number = 20;
+  cPaddingT: number = 30;
   cPaddingB: number = 30;
   cPaddingL: number = 30;
   cPaddingR: number = 30;
@@ -58,6 +58,9 @@ export class Chart {
           break
         case 'tooltip':
           this.tooltip = Object.assign({}, deepCopy(tooltip), item)
+          break
+        case 'color':
+          this.color = [...item]
           break
         case 'legend':
           item.textStyle =  Object.assign({}, deepCopy(legendTextStyle), item.textStyle || {})

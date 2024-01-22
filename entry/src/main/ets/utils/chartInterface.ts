@@ -61,12 +61,13 @@ interface TooltipInterface {
 // 数据层的特征接口
 interface SeriesInterface {
   name: string,
+  color?: string,
   lineStyle?: InterfaceObj,
   barStyle?: InterfaceObj,
   label?: InterfaceObj,
   itemStyle?: InterfaceObj,
   stack?: string,
-  data: any[]
+  data: InterfaceObj[]
 }
 
 
