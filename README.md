@@ -120,6 +120,3 @@ mcCharts
 ## 本地运行
 
 拉取代码后，使用DevEco Studio开发工具打开。打开pages/Index.ets页面，点击previewer进行预览或者真机调试。
-
-
-
