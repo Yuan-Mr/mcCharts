@@ -189,13 +189,14 @@ class DrawPoint extends Chart {
     let cPaddingL = this.cPaddingL
     let cPaddingR = this.cPaddingR
     let cPaddingT = this.cPaddingT
+    let cPaddingB = this.cPaddingB
     let xl = 0
     let xs = 0 // x轴单位数，每个单位长度
 
     // ctx.clearRect(0, 0, W, H)
     // x轴
     ctx.save()
-    ctx.translate(cPaddingL, H - cPaddingT)
+    ctx.translate(cPaddingL, H - cPaddingB)
     const { axisTick, splitLine, axisLine = {}, axisLabel, data } = this.xAxis;
     const {show: axisLineShow = true} = axisLine
     if (axisLineShow) {
@@ -213,7 +214,7 @@ class DrawPoint extends Chart {
     if (this.xAxis && (xl = data.length)) {
       xs = (W - cPaddingL - cPaddingR) / (xl - 1)
       data.forEach((obj, i) => {
-        let x = xs * (i + 1)
+        let x = xs * (i)
         if (axisTick.show) {
           const { color, width } = axisTick.lineStyle;
           ctx.beginPath()
@@ -232,7 +233,7 @@ class DrawPoint extends Chart {
         const text = String(obj)
         const txtW = this.ctx.measureText(text).width; // 获取文字的长度
         const txtH = this.ctx.measureText(text).height; // 获取文字的长度
-        const textX = x - xs - txtW / 2
+        const textX = x - txtW / 2
         const textY = axisTick.length + 5 + txtH / 2
         ctx.textBaseline = 'middle'
         ctx.fillText(text, textX, textY)
@@ -257,12 +258,11 @@ class DrawPoint extends Chart {
       }
       // 画Y轴刻度
       ctx.save()
-      ctx.translate(this.cPaddingL, this.H - this.cPaddingT)
+      ctx.translate(this.cPaddingL, this.H - this.cPaddingB)
       let xdis = this.W - this.cPaddingL - this.cPaddingR
       let ydis = this.H - this.cPaddingB - this.cPaddingT - nameH
       let yl = this.info.num
       let ys = ydis / yl
-      console.log('22222', ys)
       for (let i = 0; i <= yl; i++) {
         if (axisTick.show) {
           const { color, width } = axisTick.lineStyle;
@@ -331,7 +331,7 @@ class DrawPoint extends Chart {
       // this.drawLegend(this.series)
       // // 画y轴刻度
       // that.drawY();
-      ctx.translate(that.cPaddingL, that.H - that.cPaddingT);
+      ctx.translate(that.cPaddingL, that.H - that.cPaddingB);
       ctx.shadowBlur = 1;
       isStop = true;
       time= new Date().getTime() -start ;
@@ -428,7 +428,7 @@ class DrawPoint extends Chart {
       ctx.shadowColor = item.color;
       ctx.shadowBlur = 1;
       ctx.strokeStyle = item.color;
-      ctx.translate(that.cPaddingL + obj.x, that.H - that.cPaddingT - obj.h);
+      ctx.translate(that.cPaddingL + obj.x, that.H - that.cPaddingB - obj.h);
       // let gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, obj.radius);
       // gradient.addColorStop(0, 'hsla(' + item.hsl + ',70%,85%,0.7)');
       // gradient.addColorStop(1, 'hsla(' + item.hsl + ',70%,60%,0.7)');
