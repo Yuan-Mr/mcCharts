@@ -67,7 +67,7 @@ class DrawBar extends Chart {
     this.drawY();
 
     ctx.save();
-    ctx.translate(this.cPaddingL, (this.H - this.cPaddingT));
+    ctx.translate(this.cPaddingL, (this.H - this.cPaddingB));
     // 画标志线
     if (typeof index === 'number') {
       ctx.lineWidth = xs;
@@ -81,7 +81,7 @@ class DrawBar extends Chart {
     }
     ctx.restore();
     ctx.save();
-    ctx.translate(this.cPaddingL, (this.H - this.cPaddingT));
+    ctx.translate(this.cPaddingL, (this.H - this.cPaddingB));
     for (var i = 0, item, il = that.animateArr.length; i < il; i++) {
       item = that.animateArr[i];
       if (item.hide) continue;
@@ -119,7 +119,7 @@ class DrawBar extends Chart {
       obj, h = 0,
       isStop = true;
     ctx.save()
-    ctx.translate(this.cPaddingL, (this.H - this.cPaddingT))
+    ctx.translate(this.cPaddingL, (this.H - this.cPaddingB))
     function run() {
       isStop = true;
       for (var i = 0, item; i < that.animateArr.length; i++) {
@@ -344,11 +344,12 @@ class DrawBar extends Chart {
     let cPaddingL = this.cPaddingL
     let cPaddingR = this.cPaddingR
     let cPaddingT = this.cPaddingT
+    let cPaddingB = this.cPaddingB
     let xl = 0
     let xs = 0 // x轴单位数，每个单位长度
     // x轴
     ctx.save()
-    ctx.translate(cPaddingL, H - cPaddingT)
+    ctx.translate(cPaddingL, H - cPaddingB)
     const { axisTick, splitLine, axisLine = {}, axisLabel, formatter, data } = this.xAxis;
     const {show: axisLineShow = true} = axisLine
     if (axisLineShow) {
@@ -429,7 +430,7 @@ class DrawBar extends Chart {
       // 画Y轴刻度
       ctx.save()
       // ctx.fillStyle = 'hsl(200,100%,60%)'
-      ctx.translate(this.cPaddingL, this.H - this.cPaddingT)
+      ctx.translate(this.cPaddingL, this.H - this.cPaddingB)
       for (let i = 0; i <= yl; i++) {
         if (axisTick.show) {
           const { color, width } = axisTick.lineStyle;
@@ -475,7 +476,7 @@ class DrawBar extends Chart {
         })
         ctx.beginPath()
         ctx.moveTo(0, 0)
-        ctx.lineTo(0, this.cPaddingL + this.cPaddingT - this.H + nameH)
+        ctx.lineTo(0, (this.cPaddingT + this.cPaddingB + nameH) - this.H)
         ctx.stroke()
       }
       ctx.restore()

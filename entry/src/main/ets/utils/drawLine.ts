@@ -339,6 +339,7 @@ class DrawLine extends Chart {
     let cPaddingL = this.cPaddingL
     let cPaddingR = this.cPaddingR
     let cPaddingT = this.cPaddingT
+    let cPaddingB = this.cPaddingB
     let xl = 0
     let xs = 0 // x轴单位数，每个单位长度
 
@@ -346,7 +347,7 @@ class DrawLine extends Chart {
 
     // x轴
     ctx.save()
-    ctx.translate(cPaddingL, H - cPaddingT)
+    ctx.translate(cPaddingL, H - cPaddingB)
     const { axisTick, splitLine, axisLine = {}, axisLabel, formatter, data } = this.xAxis;
     const {show: axisLineShow = true} = axisLine
     if (axisLineShow) {
@@ -364,7 +365,7 @@ class DrawLine extends Chart {
     if (this.xAxis && (xl = data.length)) {
       xs = (W - cPaddingL - cPaddingR) / (xl - 1)
       data.forEach((obj, i) => {
-        let x = xs * (i + 1)
+        let x = xs * (i)
         if (axisTick.show) {
           const { color, width } = axisTick.lineStyle;
           ctx.beginPath()
@@ -385,7 +386,7 @@ class DrawLine extends Chart {
         obj = formatter ? String(formatter(obj)) : obj
         const txtW = this.ctx.measureText(obj).width; // 获取文字的长度
         const txtH = this.ctx.measureText(obj).height; // 获取文字的长度
-        const textX = x - xs
+        const textX = x
         const textY = axisTick.length + 5
         ctx.fillText(obj, textX, textY)
       })
@@ -416,7 +417,7 @@ class DrawLine extends Chart {
       // 画Y轴刻度
       ctx.save()
       // ctx.fillStyle = 'hsl(200,100%,60%)'
-      ctx.translate(this.cPaddingL, this.H - this.cPaddingT)
+      ctx.translate(this.cPaddingL, this.H - this.cPaddingB)
 
       for (let i = 0; i <= yl; i++) {
         if (axisTick.show) {
@@ -464,7 +465,7 @@ class DrawLine extends Chart {
         })
         ctx.beginPath()
         ctx.moveTo(0, 0)
-        ctx.lineTo(0, this.cPaddingL + this.cPaddingT - this.H + nameH)
+        ctx.lineTo(0, this.cPaddingB + this.cPaddingT + nameH - this.H )
         ctx.stroke()
         // ctx.restore()
       }
