@@ -6,7 +6,7 @@ class DrawPie extends Chart {
   private center = ['50%', '50%']
   // 标签设置，标签的视觉引导线配置
   private label = {
-    show: false,
+    show: true,
     position: 'outside',
     formatter: (params) => {
       return params.name

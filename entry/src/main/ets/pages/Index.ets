@@ -208,54 +208,7 @@ struct Index {
         }
       })
 
-      // // 饼图
-      // McPieChart({
-      //   options: {
-      //     series:[
-      //       {
-      //         name:'最高气温',
-      //         data:[
-      //           {value:435, name:'直接访问'},
-      //           {value:310, name:'邮件营销'},
-      //           {value:234, name:'联盟广告'},
-      //           {value:135, name:'视频广告'},
-      //           {value:1548, name:'搜索引擎'}
-      //         ]
-      //       }
-      //     ]
-      //   },
-      //   click: function (event, params) {
-      //     console.log('11', event, params)
-      //   },
-      //   tooltipClick: function (event, params) {
-      //     console.log('222', event, params)
-      //   }
-      // })
-      // // 柱状图
-      // McBarChart({
-      //   options: {
-      //     xAxis:{
-      //       data:['周一','周二','周三','周四','周五','周六','周日']
-      //     },
-      //     yAxis:{
-      //       name:'温度'
-      //     },
-      //     series:[
-      //       {
-      //         name:'最高气温',
-      //         data:[-10, 10, 100, 20, 34, 47, 87]
-      //       },
-      //       {
-      //         name:'最低气温',
-      //         data:[-30, 55, 12, 23, -34, 42, 87]
-      //       },
-      //       {
-      //         name:'最低气温',
-      //         data:[38, 25, 34, 45, -34, 47, 87]
-      //       }
-      //     ]
-      //   }
-      // })
+
       // 柱状图
       // McPointChart({
       //   options: {
