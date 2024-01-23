@@ -66,6 +66,8 @@ interface SeriesInterface {
   barStyle?: InterfaceObj,
   label?: InterfaceObj,
   itemStyle?: InterfaceObj,
+  labelLine?: InterfaceObj,
+  emphasis?: InterfaceObj,
   stack?: string,
   data: InterfaceObj[]
 }

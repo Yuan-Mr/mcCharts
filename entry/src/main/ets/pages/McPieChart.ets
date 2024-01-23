@@ -112,7 +112,7 @@ struct Index {
                 color: '#fffa6262',
                 fontWeight: '600',
                 fontFamily: 'sans-serif',
-                position: 'outside',
+                position: 'center',
                 fontSize: 30,
                 formatter: (params) => {
                   return 'name：' + params.name

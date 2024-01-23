@@ -26,6 +26,25 @@ const seriesOpt: SeriesInterface = {
     },
     distanceToLabelLine: 5
   },
+  labelLine: {
+    show: true, // 默认开启，如果当label的position的值不是outside，则自动隐藏
+    length: 10,
+    length2: 20,
+    minTurnAngle: 90,
+    lineStyle: {
+      color: '',
+      width: 2,
+      type: 'solid'
+    }
+  },
+  emphasis: {
+    scale: true,
+    scaleSize: 4,
+    shadowColor: 'rgba(0, 0, 0, 0.5)',
+    shadowBlur: 15,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0
+  },
   itemStyle: {
     symbol: 'solidCircle',
     symbolSize: 2,

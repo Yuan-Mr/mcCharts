@@ -134,6 +134,20 @@ class DrawPie extends Chart {
         ctx.fill();
       }
       ctx.restore();
+      if (innerRadius) {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, innerRadius, startAng, startAng, false);
+        ctx.closePath();
+        ctx.fill();
+      }
+      startAng += item.ang;
+      j++;
+    }
+    for (var i = 0, l = that.animateArr.length; i < l; i++) {
+      item = that.animateArr[i];
+      if (item.hide) continue;
       if (label.show) {
         //画描述
         var tr = radius,
@@ -149,32 +163,35 @@ class DrawPie extends Chart {
           ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(0, 0);
-          ctx.lineTo(x + length, y);
+          if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
+            ctx.lineTo(x + (isLine ? length : 0), y);
+          } else {
+            ctx.lineTo(x - (isLine ? length : 0), y);
+          }
         }
+        let labelX, labelY = y;
         if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
           isLine && ctx.lineTo(x + length2, y);
-          that.fillText(i, label, {
-            value: label.formatter(item),
-            x: x + label.distanceToLabelLine + length2,
-            y: y
-          })
+          labelX = x + label.distanceToLabelLine + (isLine ? length2 : 0)
+          ctx.textAlign = 'left'
         } else {
           isLine && ctx.lineTo(x - length2, y);
-          that.fillText(i, label, {
-            value: label.formatter(item),
-            x: x - label.distanceToLabelLine - length2 - tw,
-            y: y
-          })
+          labelX = x - label.distanceToLabelLine - (isLine ? length2 : 0)
+          ctx.textAlign = 'right'
         }
+
+        if (label.position === 'center') {
+          ctx.textAlign = 'center'
+          labelX = x / 2
+          labelY = y / 2
+        }
+
+        that.fillText(i, label, {
+          value: label.formatter(item),
+          x: labelX,
+          y: labelY
+        })
         isLine && ctx.stroke();
-      }
-      if (innerRadius) {
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, innerRadius, startAng, startAng, false);
-        ctx.closePath();
-        ctx.fill();
       }
       startAng += item.ang;
       j++;
