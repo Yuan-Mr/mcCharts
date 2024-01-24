@@ -93,7 +93,7 @@ class DrawPie extends Chart {
       labelLine = that.labelLine,
       lineStyle = that.lineStyle,
       item, startAng = -Math.PI / 2,
-      len = that.animateArr.filter(item => !item.hide).length,
+      len = that.animateArr.filter(item => !item.hide).length, labels = [],
       j = 0,
       angle = 0;
     // 判断是否标签类型是在饼图外
@@ -111,6 +111,58 @@ class DrawPie extends Chart {
       ctx.strokeStyle = item.color;
       ctx.fillStyle = item.color;
       angle = j >= len - 1 ? Math.PI * 2 - Math.PI / 2 : startAng + item.ang;
+      if (label.show) {
+        //画描述
+        var tr = radius,
+          textAlign = 'center',
+          tw = ctx.measureText(item.name).width,
+          th = ctx.measureText(item.name).height,
+          tAng = startAng + item.ang / 2,
+          x = tr * Math.cos(tAng),
+          y = tr * Math.sin(tAng);
+        if (isLine) {
+          ctx.lineWidth = width;
+          ctx.strokeStyle = color || that.color[i];
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
+            ctx.lineTo(x + (isLine ? length : 0), y);
+          } else {
+            ctx.lineTo(x - (isLine ? length : 0), y);
+          }
+        }
+        let labelX, labelY = y;
+        if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
+          isLine && ctx.lineTo(x + length2, y);
+          labelX = x + label.distanceToLabelLine + (isLine ? length2 : 0)
+          textAlign= 'left'
+        } else {
+          isLine && ctx.lineTo(x - length2, y);
+          labelX = x - label.distanceToLabelLine - (isLine ? length2 : 0)
+          textAlign = 'right'
+        }
+
+        if (label.position === 'center') {
+          textAlign = 'center'
+          labelX = x / 2
+          labelY = y / 2
+        }
+
+        // that.fillText(i, label, {
+        //   value: label.formatter(item),
+        //   x: labelX,
+        //   y: labelY
+        // })
+        labels.push({
+          textAlign,
+          i,
+          value: label.formatter(item),
+          x: labelX,
+          y: labelY
+        })
+        isLine && ctx.stroke();
+      }
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.save();
@@ -145,57 +197,10 @@ class DrawPie extends Chart {
       startAng += item.ang;
       j++;
     }
-    for (var i = 0, l = that.animateArr.length; i < l; i++) {
-      item = that.animateArr[i];
-      if (item.hide) continue;
-      if (label.show) {
-        //画描述
-        var tr = radius,
-          tw = ctx.measureText(item.name).width,
-          th = ctx.measureText(item.name).height,
-          tAng = startAng + item.ang / 2,
-          x = tr * Math.cos(tAng),
-          y = tr * Math.sin(tAng);
-
-        if (isLine) {
-          ctx.lineWidth = width;
-          ctx.strokeStyle = color || that.color[i];
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
-            ctx.lineTo(x + (isLine ? length : 0), y);
-          } else {
-            ctx.lineTo(x - (isLine ? length : 0), y);
-          }
-        }
-        let labelX, labelY = y;
-        if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
-          isLine && ctx.lineTo(x + length2, y);
-          labelX = x + label.distanceToLabelLine + (isLine ? length2 : 0)
-          ctx.textAlign = 'left'
-        } else {
-          isLine && ctx.lineTo(x - length2, y);
-          labelX = x - label.distanceToLabelLine - (isLine ? length2 : 0)
-          ctx.textAlign = 'right'
-        }
-
-        if (label.position === 'center') {
-          ctx.textAlign = 'center'
-          labelX = x / 2
-          labelY = y / 2
-        }
-
-        that.fillText(i, label, {
-          value: label.formatter(item),
-          x: labelX,
-          y: labelY
-        })
-        isLine && ctx.stroke();
-      }
-      startAng += item.ang;
-      j++;
-    }
+    labels.forEach(({i, value, x, y, textAlign}) => {
+      ctx.textAlign = textAlign
+      that.fillText(i, label, { value, x, y })
+    })
     ctx.restore();
   }
   animate() {

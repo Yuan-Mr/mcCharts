@@ -101,24 +101,62 @@ struct Index {
       //   }
       // })
 
-      // 柱状图-series属性
+      // // 柱状图-series属性
+      // McPieChart({
+      //   options: {
+      //     series:[
+      //       {
+      //         name:'最高气温',
+      //         label: {
+      //           show: true,
+      //           color: '#fffa6262',
+      //           fontWeight: '600',
+      //           fontFamily: 'sans-serif',
+      //           position: 'center',
+      //           fontSize: 30,
+      //           formatter: (params) => {
+      //             return 'name：' + params.name
+      //           },
+      //           distanceToLabelLine: 10
+      //         },
+      //         labelLine: {
+      //           show: true, // 默认开启，如果当label的position的值不是outside，则自动隐藏
+      //           length: 10,
+      //           length2: 20,
+      //           lineStyle: {
+      //             color: '#000',
+      //             width: 1,
+      //             type: 'solid'
+      //           }
+      //         },
+      //         emphasis: {
+      //           scale: true,
+      //           scaleSize: 10,
+      //           shadowColor: 'rgba(248, 57, 57, 1.00)',
+      //           shadowBlur: 20,
+      //           shadowOffsetX: 10,
+      //           shadowOffsetY: 10
+      //         },
+      //         data:[
+      //           {value:435, name:'直接访问'},
+      //           {value:310, name:'邮件营销'},
+      //           {value:234, name:'联盟广告'},
+      //           {value:135, name:'视频广告'},
+      //           {value:1548, name:'搜索引擎'}
+      //         ]
+      //       }
+      //     ]
+      //   }
+      // })
+
+      // 环形
       McPieChart({
         options: {
           series:[
             {
               name:'最高气温',
-              label: {
-                show: true,
-                color: '#fffa6262',
-                fontWeight: '600',
-                fontFamily: 'sans-serif',
-                position: 'center',
-                fontSize: 30,
-                formatter: (params) => {
-                  return 'name：' + params.name
-                },
-                distanceToLabelLine: 10
-              },
+              radius: ['80%', '50%'], // 饼图内半径、内半径
+              center: ['40%', '60%'], // 饼图中心位置
               data:[
                 {value:435, name:'直接访问'},
                 {value:310, name:'邮件营销'},
