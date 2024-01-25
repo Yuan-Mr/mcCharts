@@ -227,12 +227,12 @@ class DrawPie extends Chart {
 
         ctx.fillStyle = item.color;
         if (item.last > item.ang) {
-          ang = item.cur - 0.05;
+          ang = item.cur - 0.06;
           if (ang < item.ang) {
             item.cur = item.last = item.ang;
           }
         } else {
-          ang = item.cur + 0.05;
+          ang = item.cur + 0.06;
           if (ang > item.ang) {
             item.cur = item.last = item.ang;
           }
@@ -251,7 +251,7 @@ class DrawPie extends Chart {
           ctx.fillStyle = '#fff';
           ctx.beginPath();
           ctx.moveTo(0, 0);
-          ctx.arc(0, 0, innerRadius, startAng, startAng, false);
+          ctx.arc(0, 0, innerRadius, startAng, startAng + item.cur, false);
           ctx.closePath();
           ctx.fill();
         }
@@ -264,7 +264,7 @@ class DrawPie extends Chart {
       // requestAnimationFrame(run);
       setTimeout(() => {
         run()
-      }, 10)
+      }, 1000 / 60)
     };
     run()
   }
@@ -303,31 +303,18 @@ class DrawPie extends Chart {
 
     for (var i = 0; i < this.pieData.length; i++) {
       item = this.pieData[i];
-      if (!this.animateArr[i]) {
-        this.animateArr.push({
-          i: i,
-          create: true,
-          hide: !!item.hide,
-          name: item.name,
-          color: item.color,
-          num: item.value,
-          percent: Math.round(item.value / total * 10000) / 100,
-          ang: Math.round(item.value / total * Math.PI * 2 * 100) / 100,
-          last: 0,
-          cur: 0
-        });
-      } else { // 更新
-        if (that.animateArr[i].hide && !item.hide) {
-          that.animateArr[i].create = true;
-          that.animateArr[i].cur = 0;
-          that.animateArr[i].last = 0;
-        } else {
-          that.animateArr[i].create = false;
-        }
-        that.animateArr[i].hide = item.hide;
-        that.animateArr[i].percent = Math.round(item.value / total * 10000) / 100;
-        that.animateArr[i].ang = Math.round(item.value / total * Math.PI * 2 * 100) / 100;
-      }
+      this.animateArr.push({
+        i: i,
+        create: true,
+        hide: !!item.hide,
+        name: item.name,
+        color: item.color,
+        num: item.value,
+        percent: Math.round(item.value / total * 10000) / 100,
+        ang: Math.round(item.value / total * Math.PI * 2 * 100) / 100,
+        last: 0,
+        cur: 0
+      });
     }
   }
   // 获取中心坐标

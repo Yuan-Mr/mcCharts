@@ -4,7 +4,6 @@ import { Chart } from './charts'
  * 柱状图
  */
 class DrawPoint extends Chart {
-  private zeroScaleY;
   constructor () {
     super('point');
   }
@@ -136,11 +135,11 @@ class DrawPoint extends Chart {
         });
 
         item.data.forEach((d, j) => {
-          h = Math.floor((d.yVal - min) / (max - min) * ydis + 2);
+          h = Math.floor((d.yVal - min) / (max - min) * ydis);
           // r = getRadius(numMax, numMin, d.num);
-          r = 5;
+          r = typeof item.symbolSize == 'number' ? item.symbolSize : item.symbolSize(d);
           obj.data[j] = d;
-          obj.data[j].h = h - r / 2;
+          obj.data[j].h = h;
           obj.data[j].p = h;
           obj.data[j].x = Math.floor((d.xVal - xmin) / (xmax - xmin) * xdis + 2);
           obj.data[j].y = h;

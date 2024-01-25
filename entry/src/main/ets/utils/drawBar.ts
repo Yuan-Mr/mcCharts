@@ -280,58 +280,45 @@ class DrawBar extends Chart {
       }
       const barW = Math.round((xs - sp * (sl - 1) - bcg * 2) / sl)
       w = width > barW ? barW : width ;
-      if (!this.animateArr[i]) {
-        obj = Object.assign({}, {
-          i: index,
-          isStop: true,
-          xl: 0,
-          create: true,
-          ...item,
-          hide: !!item.hide,
-          name: item.name,
-          color: color || item.color,
-          barW: w,
-          stack,
-          data: []
-        })
+      obj = Object.assign({}, {
+        i: index,
+        isStop: true,
+        xl: 0,
+        create: true,
+        ...item,
+        hide: !!item.hide,
+        name: item.name,
+        color: color || item.color,
+        barW: w,
+        stack,
+        data: []
+      })
 
-        item.data.slice(0, xl).forEach((d, j) => {
-          let zeroScaleY = that.zeroScaleY
-          let oldH = Math.floor((d - min) / (max - min) * ydis)
-          let h = Math.floor((d - min) / (max - min) * ydis)
-          // 判断是否是堆积图，如果是合计的堆积图，则每个柱子的起点也是累计的
-          if (stack === 'total' && i !== 0) {
-            this.animateArr.forEach(amItem => {
-              // 找到上一条对应的数据
-              const dataItem = amItem.data[j]
-              if ((dataItem.num >= 0 && d >= 0) || (dataItem.num < 0 && d < 0)) {
-                zeroScaleY = -dataItem.h
-                h = Math.abs(zeroScaleY) + oldH - Math.abs(that.zeroScaleY)
-              }
-            })
-          }
-          obj.data.push({
-            num: d,
-            h,
-            zeroScaleY,
-            p: 0,
-            x: stack ? Math.round((xs * j) + w / 2 + bcg) : Math.round(xs * j + w * index + sp * (index) + w / 2 + bcg),
-            y: 0
+      item.data.slice(0, xl).forEach((d, j) => {
+        let zeroScaleY = that.zeroScaleY
+        let oldH = Math.floor((d - min) / (max - min) * ydis)
+        let h = Math.floor((d - min) / (max - min) * ydis)
+        // 判断是否是堆积图，如果是合计的堆积图，则每个柱子的起点也是累计的
+        if (stack === 'total' && i !== 0) {
+          this.animateArr.forEach(amItem => {
+            // 找到上一条对应的数据
+            const dataItem = amItem.data[j]
+            if ((dataItem.num >= 0 && d >= 0) || (dataItem.num < 0 && d < 0)) {
+              zeroScaleY = -dataItem.h
+              h = Math.abs(zeroScaleY) + oldH - Math.abs(that.zeroScaleY)
+            }
           })
-        })
-        this.animateArr.push(obj)
-      } else { // 更新
-        if (that.animateArr[i].hide && !item.hide) {
-          that.animateArr[i].create = true
-          that.animateArr[i].xl = 0
-        } else {
-          that.animateArr[i].create = false
         }
-        that.animateArr[i].hide = item.hide
-        item.data.slice(0, xl).forEach((d, j) => {
-          that.animateArr[i].data[j].h = Math.floor((d - min) / (max - min) * ydis)
+        obj.data.push({
+          num: d,
+          h,
+          zeroScaleY,
+          p: 0,
+          x: stack ? Math.round((xs * j) + w / 2 + bcg) : Math.round(xs * j + w * index + sp * (index) + w / 2 + bcg),
+          y: 0
         })
-      }
+      })
+      this.animateArr.push(obj)
       if (!item.hide) { index++; }
     }
   }

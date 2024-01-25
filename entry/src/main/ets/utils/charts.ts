@@ -39,7 +39,11 @@ export class Chart {
     this.ctx = ctx
     this.W = ctx.width
     this.H = ctx.height
+    this.animateArr = []
     // this.ctx.imageSmoothingQuality = 'high'
+    ctx.translate(0, 0);
+    ctx.restore()
+    ctx.clearRect(0, 0, this.W, this.H);
     this.setOption(opt)
     this.create()
   }

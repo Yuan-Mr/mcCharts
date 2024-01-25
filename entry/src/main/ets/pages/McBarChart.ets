@@ -1,7 +1,136 @@
-import {McBarChart, McPieChart, McPointChart} from '../components/index'
+import {McBarChart, McPieChart, McPointChart, Options} from '../components/index'
+
 @Entry
 @Component
 struct Index {
+  @State seriesOption: Options = new Options({
+    xAxis:{
+      data:['周一','周二','周三','周四','周五','周六','周日']
+    },
+    yAxis:{
+      name: '测试'
+    },
+    series: [
+      {
+        name:'最高气温',
+        color: '#ff2659f5',
+        barStyle: {
+          color: '',
+          width: 40,
+          barGap: 0,
+          barCategoryGap: 0
+        },
+        label: {
+          show: true,
+          color: '#fffa6262',
+          fontWeight: '600',
+          fontFamily: 'sans-serif',
+          position: '',
+          fontSize: 30,
+          formatter: (params) => {
+            return params.name
+          },
+          distanceToLabelLine: 10
+        },
+        stack: 'total',
+        data:[11, 11, 50, 30, 12, 130, 10]
+      },
+      {
+        name:'最低气温',
+        barStyle: {
+          color: '',
+          width: 40,
+          barGap: 0,
+          barCategoryGap: 0
+        },
+        label: {
+          show: true,
+          color: '#fffa6262',
+          fontWeight: '600',
+          fontFamily: 'sans-serif',
+          position: '',
+          fontSize: 30,
+          formatter: (params) => {
+            return params.name
+          },
+          distanceToLabelLine: 10
+        },
+        itemStyle: {
+          symbol: 'solidCircle',
+          symbolSize: 4,
+          symbolColor: '',
+          borderWidth: 0,
+          borderType: 'solid',
+          borderColor: ''
+        },
+        stack: 'total',
+        data:[-11, -11, -50, 40, -12, -130, -10]
+      }
+    ]
+  })
+  aboutToAppear() {
+    setTimeout(() => {
+      this.seriesOption.setVal({
+        series: [
+          {
+          name:'最高气温',
+          color: '#ff2659f5',
+          barStyle: {
+            color: '',
+            width: 40,
+            barGap: 0,
+            barCategoryGap: 0
+          },
+          label: {
+            show: true,
+            color: '#fffa6262',
+            fontWeight: '600',
+            fontFamily: 'sans-serif',
+            position: '',
+            fontSize: 30,
+            formatter: (params) => {
+              return params.name
+            },
+            distanceToLabelLine: 10
+          },
+          stack: 'total',
+          data:[112, 121, 520, 320, 122, 130, 120]
+        },
+          {
+            name:'最低气温',
+            barStyle: {
+              color: '',
+              width: 40,
+              barGap: 0,
+              barCategoryGap: 0
+            },
+            label: {
+              show: true,
+              color: '#fffa6262',
+              fontWeight: '600',
+              fontFamily: 'sans-serif',
+              position: '',
+              fontSize: 30,
+              formatter: (params) => {
+                return params.name
+              },
+              distanceToLabelLine: 10
+            },
+            itemStyle: {
+              symbol: 'solidCircle',
+              symbolSize: 4,
+              symbolColor: '',
+              borderWidth: 0,
+              borderType: 'solid',
+              borderColor: ''
+            },
+            stack: 'total',
+            data:[-121, -121, -520, 140, -12, -130, -10]
+          }
+        ]
+      })
+    }, 2000)
+  }
   build() {
     Column() {
       // McBarChart({
@@ -185,71 +314,7 @@ struct Index {
 
       // 柱状图-series属性
       McBarChart({
-        options: {
-          xAxis:{
-            data:['周一','周二','周三','周四','周五','周六','周日']
-          },
-          yAxis:{
-            name: '测试'
-          },
-          series: [
-            {
-              name:'最高气温',
-              color: '#ff2659f5',
-              barStyle: {
-                color: '',
-                width: 40,
-                barGap: 0,
-                barCategoryGap: 0
-              },
-              label: {
-                show: true,
-                color: '#fffa6262',
-                fontWeight: '600',
-                fontFamily: 'sans-serif',
-                position: '',
-                fontSize: 30,
-                formatter: (params) => {
-                  return params.name
-                },
-                distanceToLabelLine: 10
-              },
-              stack: 'total',
-              data:[11, 11, 50, 30, 12, 130, 10]
-            },
-            {
-              name:'最低气温',
-              barStyle: {
-                color: '',
-                width: 40,
-                barGap: 0,
-                barCategoryGap: 0
-              },
-              label: {
-                show: true,
-                color: '#fffa6262',
-                fontWeight: '600',
-                fontFamily: 'sans-serif',
-                position: '',
-                fontSize: 30,
-                formatter: (params) => {
-                  return params.name
-                },
-                distanceToLabelLine: 10
-              },
-              itemStyle: {
-                symbol: 'solidCircle',
-                symbolSize: 4,
-                symbolColor: '',
-                borderWidth: 0,
-                borderType: 'solid',
-                borderColor: ''
-              },
-              stack: 'total',
-              data:[-11, -11, -50, 40, -12, -130, -10]
-            }
-          ]
-        }
+        options: this.seriesOption
       })
     }
     .height('50%')

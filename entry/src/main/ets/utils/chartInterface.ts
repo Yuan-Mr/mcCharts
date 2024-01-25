@@ -69,6 +69,7 @@ interface SeriesInterface {
   labelLine?: InterfaceObj,
   emphasis?: InterfaceObj,
   stack?: string,
+  symbolSize?: Number | Function,
   data: InterfaceObj[]
 }
 

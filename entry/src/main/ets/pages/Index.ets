@@ -1,7 +1,82 @@
-import {McLineChart, McBarChart, McPieChart, McPointChart} from '../components/index'
+import {McLineChart, McBarChart, McPieChart, McPointChart, Options} from '../components/index'
 @Entry
 @Component
 struct Index {
+  @State seriesOption: Options = new Options({
+    xAxis:{
+      data:['周一','周二','周三','周四','周五','周六','周日']
+    },
+    series: [
+      {
+        name:'最高气温',
+        color: '#ff2659f5',
+        lineStyle: {
+          color: '#ff2659f5',
+          width: 2,
+          type: 'solid'
+        },
+        label: {
+          show: true,
+          color: '#fffa6262',
+          fontWeight: '600',
+          fontFamily: 'sans-serif',
+          position: '',
+          fontSize: 30,
+          formatter: (params) => {
+            return params.name
+          },
+          distanceToLabelLine: 10
+        },
+        itemStyle: {
+          symbol: 'solidCircle',
+          symbolSize: 4,
+          symbolColor: '',
+          borderWidth: 0,
+          borderType: 'solid',
+          borderColor: ''
+        },
+        data:[11, 11, 50, 30, 12, 130, 10]
+      }
+    ]
+  })
+  aboutToAppear() {
+    setTimeout(() => {
+      this.seriesOption.setVal({
+        series: [
+          {
+            name:'最高气温',
+            color: '#ff2659f5',
+            lineStyle: {
+              color: '#ff2659f5',
+              width: 2,
+              type: 'solid'
+            },
+            label: {
+              show: true,
+              color: '#fffa6262',
+              fontWeight: '600',
+              fontFamily: 'sans-serif',
+              position: '',
+              fontSize: 30,
+              formatter: (params) => {
+                return params.name
+              },
+              distanceToLabelLine: 10
+            },
+            itemStyle: {
+              symbol: 'solidCircle',
+              symbolSize: 4,
+              symbolColor: '',
+              borderWidth: 0,
+              borderType: 'solid',
+              borderColor: ''
+            },
+            data:[110, 101, 500, 300, 102, 1030, 100]
+          }
+        ]
+      })
+    }, 2000)
+  }
   build() {
     Column() {
       // // 折线图-x轴属性
@@ -169,66 +244,8 @@ struct Index {
 
       // 折线图-series属性
       McLineChart({
-        options: {
-          xAxis:{
-            data:['周一','周二','周三','周四','周五','周六','周日']
-          },
-          series: [
-            {
-              name:'最高气温',
-              color: '#ff2659f5',
-              lineStyle: {
-                color: '#ff2659f5',
-                width: 2,
-                type: 'solid'
-              },
-              label: {
-                show: true,
-                color: '#fffa6262',
-                fontWeight: '600',
-                fontFamily: 'sans-serif',
-                position: '',
-                fontSize: 30,
-                formatter: (params) => {
-                  return params.name
-                },
-                distanceToLabelLine: 10
-              },
-              itemStyle: {
-                symbol: 'solidCircle',
-                symbolSize: 4,
-                symbolColor: '',
-                borderWidth: 0,
-                borderType: 'solid',
-                borderColor: ''
-              },
-              data:[11, 11, 50, 30, 12, 130, 10]
-            }
-          ]
-        }
+        options: this.seriesOption
       })
-
-
-      // 柱状图
-      // McPointChart({
-      //   options: {
-      //     xAxis:{
-      //       data: []
-      //     },
-      //     yAxis:{
-      //       name:'温度'
-      //     },
-      //     series:[
-      //       {
-      //         name:'最高气温',
-      //         data: [
-      //           {xVal:28604,yVal:77,num:17096869,name:'Australia'},
-      //           {xVal:8604,yVal:50,num:17096869,name:'Australia'}
-      //         ]
-      //       }
-      //     ]
-      //   }
-      // })
     }
     .height('50%')
   }

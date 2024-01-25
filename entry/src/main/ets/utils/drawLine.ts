@@ -240,7 +240,7 @@ class DrawLine extends Chart {
       }
       setTimeout(() => {
         run()
-      }, 50)
+      }, 1000 / 60)
     }
     run()
   }

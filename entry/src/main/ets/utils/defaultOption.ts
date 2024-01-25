@@ -54,6 +54,7 @@ const seriesOpt: SeriesInterface = {
     borderColor: ''
   },
   stack: '', // 数据堆叠
+  symbolSize: 5, // 散点图的标记大小
   data: []
 }
 
@@ -156,6 +157,7 @@ const legend: LegendInterface = {
   itemHeight: 8, // 图例标记的图形高度。
   textStyle: legendTextStyle
 }
+
 
 export {
   seriesOpt,

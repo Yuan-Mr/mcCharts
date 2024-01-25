@@ -1,5 +1,6 @@
 import { InterfaceObj } from '../../utils/chartInterface'
 import { Tooltip } from './Tooltip'
+import { Options } from './Options'
 @Component
 export struct Chart {
   private settings: RenderingContextSettings = new RenderingContextSettings(true)
@@ -7,9 +8,13 @@ export struct Chart {
   private drawMcChart;
   private click;
   private tooltipClick;
-  @Link options: InterfaceObj;
+  @ObjectLink @Watch('onCountUpdated') options: Options;
   @State isTooltipShow: boolean = false
   @State tooltipInfo: InterfaceObj = {}
+  onCountUpdated(options: Options): void {
+    this.drawMcChart.init(this.context, this.options)
+  }
+
   showInfo (flag, event = {}, pos?, title?, arr?, tooltipInfo?) {
     this.isTooltipShow = flag
     const {show, type = 'default'} = tooltipInfo || {}

@@ -1,7 +1,43 @@
-import {McBarChart, McPieChart, McPointChart} from '../components/index'
+import {McBarChart, McPieChart, McPointChart, Options} from '../components/index'
 @Entry
 @Component
 struct Index {
+  @State seriesOption: Options = new Options({
+    series: [
+      {
+        name:'最高气温',
+        radius: ['80%', '50%'], // 饼图内半径、内半径
+        center: ['40%', '60%'], // 饼图中心位置
+        data:[
+          {value:435, name:'直接访问'},
+          {value:310, name:'邮件营销'},
+          {value:234, name:'联盟广告'},
+          {value:135, name:'视频广告'},
+          {value:1548, name:'搜索引擎'}
+        ]
+      }
+    ]
+  })
+  aboutToAppear() {
+    setTimeout(() => {
+      this.seriesOption.setVal({
+        series: [
+          {
+            name:'最高气温',
+            radius: ['80%', '50%'], // 饼图内半径、内半径
+            center: ['40%', '60%'], // 饼图中心位置
+            data:[
+              {value:1435, name:'直接访问'},
+              {value:1310, name:'邮件营销'},
+              {value:234, name:'联盟广告'},
+              {value:135, name:'视频广告'},
+              {value:1548, name:'搜索引擎'}
+            ]
+          }
+        ]
+      })
+    }, 4000)
+  }
   build() {
     Column() {
       // // 饼图
@@ -151,22 +187,7 @@ struct Index {
 
       // 环形
       McPieChart({
-        options: {
-          series:[
-            {
-              name:'最高气温',
-              radius: ['80%', '50%'], // 饼图内半径、内半径
-              center: ['40%', '60%'], // 饼图中心位置
-              data:[
-                {value:435, name:'直接访问'},
-                {value:310, name:'邮件营销'},
-                {value:234, name:'联盟广告'},
-                {value:135, name:'视频广告'},
-                {value:1548, name:'搜索引擎'}
-              ]
-            }
-          ]
-        }
+        options: this.seriesOption
       })
     }
     .height('50%')
