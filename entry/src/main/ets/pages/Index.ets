@@ -1,4 +1,7 @@
 import {McLineChart, McBarChart, McPieChart, McPointChart, Options} from '../components/index'
+interface InterfaceObj {
+  name: string
+}
 @Entry
 @Component
 struct Index {
@@ -22,7 +25,7 @@ struct Index {
           fontFamily: 'sans-serif',
           position: '',
           fontSize: 30,
-          formatter: (params) => {
+          formatter: (params: InterfaceObj) => {
             return params.name
           },
           distanceToLabelLine: 10
@@ -58,7 +61,7 @@ struct Index {
               fontFamily: 'sans-serif',
               position: '',
               fontSize: 30,
-              formatter: (params) => {
+              formatter: (params: InterfaceObj) => {
                 return params.name
               },
               distanceToLabelLine: 10

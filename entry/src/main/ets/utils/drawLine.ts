@@ -57,15 +57,15 @@ class DrawLine extends Chart {
     if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
       nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
     }
-    ctx.translate(0, 0)
-    ctx.restore()
-    ctx.clearRect(0, 0, that.W, that.H)
+    ctx.clearRect(0, 0, that.W, that.H);
     // 画坐标系
     this.drawAxis()
     // 画标签
     this.drawLegend(this.series)
     // 画y轴刻度
     this.drawY()
+    ctx.save()
+    ctx.translate(that.cPaddingL, that.H - that.cPaddingB);
     // 画标志线
     if (typeof index === 'number') {
       const { axisPointer = {} } = that.tooltip
@@ -78,6 +78,7 @@ class DrawLine extends Chart {
       ctx.lineTo(obj.x, 0)
       ctx.stroke()
     }
+
 
     for (let i = 0, item, il = that.animateArr.length; i < il; i++) {
       item = that.animateArr[i]
@@ -135,8 +136,9 @@ class DrawLine extends Chart {
     that.drawing = true;
     function run () {
       isStop = true
-      ctx.clearRect(0, that.cPaddingL + that.cPaddingT - 5, that.W, that.H - that.cPaddingB - that.cPaddingT + 4)
+      // ctx.clearRect(0, that.cPaddingL + that.cPaddingT - 5, that.W, that.H - that.cPaddingB - that.cPaddingT + 4)
       ctx.save()
+      ctx.translate(that.cPaddingL, that.H - that.cPaddingB);
       for (let i = 0, item, il = that.animateArr.length; i < il; i++) {
         item = that.animateArr[i]
         if (item.hide) continue
@@ -343,7 +345,7 @@ class DrawLine extends Chart {
     let xl = 0
     let xs = 0 // x轴单位数，每个单位长度
 
-    ctx.clearRect(0, 0, W, H)
+    // ctx.clearRect(0, 0, W, H)
 
     // x轴
     ctx.save()
@@ -469,7 +471,7 @@ class DrawLine extends Chart {
         ctx.stroke()
         // ctx.restore()
       }
-      ctx.save()
+      // ctx.save()
       ctx.restore()
     }
   }

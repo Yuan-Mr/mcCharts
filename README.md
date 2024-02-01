@@ -23,7 +23,7 @@ mcCharts(莓创图表)是McUI提供的一款开箱即用的图表工具库。作
 
 如果大家有技术上需要交流的相关事项，可以加入群聊，大家一起讨论。
 
-<img src="http://meichuang.org.cn/crowd.jpg" width="200">
+<img src="./crowd.png" width="200">
 
 `注意：如果群已过期的话，请添加群管理员：Mc-Technology。让其邀请入群`
 

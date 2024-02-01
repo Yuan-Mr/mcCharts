@@ -56,8 +56,6 @@ class DrawBar extends Chart {
     if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
       nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
     }
-    ctx.translate(0, 0);
-    ctx.restore();
     ctx.clearRect(0, 0, that.W, that.H);
     // 画坐标系
     this.drawAxis();
@@ -79,9 +77,6 @@ class DrawBar extends Chart {
       ctx.lineTo(x, 0);
       ctx.stroke();
     }
-    ctx.restore();
-    ctx.save();
-    ctx.translate(this.cPaddingL, (this.H - this.cPaddingB));
     for (var i = 0, item, il = that.animateArr.length; i < il; i++) {
       item = that.animateArr[i];
       if (item.hide) continue;
@@ -118,10 +113,10 @@ class DrawBar extends Chart {
       ctx = this.ctx,
       obj, h = 0,
       isStop = true;
-    ctx.save()
-    ctx.translate(this.cPaddingL, (this.H - this.cPaddingB))
     function run() {
       isStop = true;
+      ctx.save()
+      ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
       for (var i = 0, item; i < that.animateArr.length; i++) {
         item = that.animateArr[i];
         if (item.hide) continue;
@@ -185,10 +180,11 @@ class DrawBar extends Chart {
             }
           }
         }
-        ctx.restore()
         that.drawing = false
+        ctx.restore()
         return
       }
+      ctx.restore()
       setTimeout(() => {
         run()
       }, 1000 / 60)
@@ -370,9 +366,11 @@ class DrawBar extends Chart {
         const {color, fontWeight, fontSize, fontFamily} = axisLabel
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         this.ctx.fillStyle = color
+        ctx.textBaseline = 'middle'
         obj = formatter ? String(formatter(obj)) : obj
         const txtW = this.ctx.measureText(obj).width; // 获取文字的长度
-        ctx.fillText(obj, x - xs / 2 - txtW / 2, 12)
+        const textY = axisTick.length + 5
+        ctx.fillText(obj, x - xs / 2 - txtW / 2, textY)
       })
     }
     ctx.restore()
@@ -447,6 +445,7 @@ class DrawBar extends Chart {
         this.ctx.fillStyle = color
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         ctx.textAlign = 'right'
+        ctx.textBaseline = 'middle'
         let dim = Math.floor(this.info.step * i + this.info.min)
         let txt = String(this.yAxis.formatter ? this.yAxis.formatter(dim) : dim)
         const txtH = this.ctx.measureText(txt).height; // 获取文字的长度
@@ -493,6 +492,7 @@ class DrawBar extends Chart {
     } else if (position === 'bottom') {
       textY = obj.num > 0 ? obj.zeroScaleY - distanceToLabelLine : obj.zeroScaleY + distanceToLabelLine
     }
+    ctx.textBaseline = 'middle'
     ctx.fillText(text, textX, textY);
   }
 }

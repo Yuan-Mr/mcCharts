@@ -104,6 +104,9 @@ export class Chart {
   create () {
 
   }
+  bindEvent (e, callback) {
+
+  }
   setCtxStyle (style) {
     for (const key in style) {
       this.ctx[key] = style[key];

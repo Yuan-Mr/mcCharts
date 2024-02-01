@@ -1,5 +1,5 @@
 import { InterfaceObj } from '../../utils/chartInterface'
-@Extend(Text) function fancy (tooltipInfo) {
+@Extend(Text) function fancy (tooltipInfo: InterfaceObj) {
   .fontSize(tooltipInfo.textStyle.fontSize || $r('app.float.fontSize'))
   .fontColor(tooltipInfo.textStyle.color || $r('app.float.color'))
   .fontWeight(tooltipInfo.textStyle.fontWeight || $r('app.float.fontWeight'))
@@ -12,15 +12,21 @@ export struct Tooltip {
   @State y: number = -1000;
 
   onTooltipInfoUpdated (): void {
-    const { x } = this.tooltipInfo.pos
+    const pos: InterfaceObj = this.tooltipInfo.pos
+    const x: number = pos.x || 0
     if (x + 40 !== this.x) {
       this.x = -10000
       this.y = -10000
     }
   }
-  getPos (rect) {
-    const { W, H, x, y } = this.tooltipInfo.pos
-    const { width, height } = rect
+  getPos (rect: InterfaceObj) {
+    const pos: InterfaceObj = this.tooltipInfo.pos
+    const W: number = pos.W || 0
+    const H: number = pos.H || 0
+    const x: number = pos.x || 0
+    const y: number = pos.y || 0
+    const width: number = rect.width
+    const height: number = rect.height
     if (x + 40 + width > W - 10) {
       this.x = x - width + 20
     } else {
@@ -45,7 +51,7 @@ export struct Tooltip {
             bottom: 8
           })
       }
-      ForEach(this.tooltipInfo.data, (item, index) => {
+      ForEach(this.tooltipInfo.data, (item: InterfaceObj, index) => {
         Text(item.name + '：' + item.num)
           .fancy(this.tooltipInfo)
       })

@@ -136,7 +136,7 @@ struct Index {
   })
   @State tooltipOption: Options = new Options({
     tooltip: {
-      show: true,
+      show: false,
       type: 'default', // 渲染类型。可选值：default（默认）、custom（自定义）
       axisPointer: {
         type: 'line',
@@ -234,15 +234,15 @@ struct Index {
       //   options: this.legendOption
       // })
 
-      // // 散点图-tooltip属性
-      // McPointChart({
-      //   options: this.tooltipOption
-      // })
-
-      // 散点图-series属性
+      // 散点图-tooltip属性
       McPointChart({
-        options: this.seriesOption
+        options: this.tooltipOption
       })
+
+      // // 散点图-series属性
+      // McPointChart({
+      //   options: this.seriesOption
+      // })
     }
     .height('50%')
   }
