@@ -90,7 +90,7 @@ struct Index {
         fontFamily: 'sans-serif',
         fontSize: 20,
       },
-      formatter: function (name) { // 自定义文本标签
+      formatter: (name: string): string =>  { // 自定义文本标签
         return name + '°C'
       },
     },
@@ -174,7 +174,7 @@ struct Index {
       {
         name:'高气温',
         color: '#ff2659f5',
-        symbolSize: function (data) {
+        symbolSize: function (data: any): string | number {
           return data.xVal
         },
         data: [
