@@ -25,6 +25,7 @@ interface interface_option {
 interface AxisInterface {
   name?: string,
   nameTextStyle?: InterfaceObj,
+  nameGap?: number,
   axisLine?: InterfaceObj,
   axisTick?: InterfaceObj,
   axisLabel?: InterfaceObj,
@@ -66,11 +67,38 @@ interface SeriesInterface {
   barStyle?: InterfaceObj,
   label?: InterfaceObj,
   itemStyle?: InterfaceObj,
+  areaStyle?: InterfaceObj,
   labelLine?: InterfaceObj,
   emphasis?: InterfaceObj,
   stack?: string,
   symbolSize?: Number | Function,
-  data: InterfaceObj[]
+  padAngle?: Number
+  radius?: string[],
+  center?: string[],
+  smooth?: boolean,
+  data: Array<string | number | InterfaceObj>
+}
+
+// 缩放的特征接口
+interface DataZoomInterface {
+  show: boolean,
+  num?: number,
+  start: number,
+  end: number
+}
+
+// 雷达图的特征接口
+interface RadarInterface {
+  indicator: InterfaceObj[],
+  center?: Array<string | number>,
+  radius?: number | string,
+  startAngle?: number,
+  nameGap ?: number,
+  splitNumber ?: number,
+  axisLine?: InterfaceObj,
+  axisName?: InterfaceObj,
+  splitLine?: InterfaceObj,
+  splitArea?: InterfaceObj
 }
 
 
@@ -79,5 +107,7 @@ export {
   InterfaceObj,
   LegendInterface,
   TooltipInterface,
-  SeriesInterface
+  SeriesInterface,
+  DataZoomInterface,
+  RadarInterface
 }

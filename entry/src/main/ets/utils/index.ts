@@ -129,7 +129,7 @@ export function calculateNum (arr, isMin?) {
     num: num,
     step: step,
     min: min,
-    max: Math.max(...arr) > 0 ? max : 0
+    max: Math.max(...arr) > 0 ? max : Math.max(0, max - step)
   }
 }
 
@@ -139,7 +139,7 @@ export function percentageConversion (value) {
 
 export function isPointInSector(pointX, pointY, centerX, centerY, radius, startAngle, endAngle) {
   // 计算给定坐标与扇形圆心的距离
-  var distance = Math.sqrt(Math.pow(pointX - centerX, 2) + Math.pow(pointY - centerY, 2));
+  let distance = Math.sqrt(Math.pow(pointX - centerX, 2) + Math.pow(pointY - centerY, 2));
   // 计算给定坐标与扇形圆心的角度
   let angle = Math.atan2(pointY - centerY, pointX - centerX);
   // 将角度转换为正值（0到360度）
@@ -163,7 +163,179 @@ export function isPointInSector(pointX, pointY, centerX, centerY, radius, startA
  *  */
 export function pointInsideCircle(point, circle, r) {
   if (r === 0) return false
-  var dx = circle[0] - point[0]
-  var dy = circle[1] - point[1]
+  let dx = circle[0] - point[0]
+  let dy = circle[1] - point[1]
   return dx * dx + dy * dy <= r * r
+}
+
+// 辅助函数：计算两点之间的距离
+export function getDistance(point1, point2) {
+  let dx = point2.localX - point1.localX;
+  let dy = point2.localY - point1.localY;
+  return Math.hypot(dx, dy);
+}
+
+
+export function interpolateLinear(points, density = 2) {
+  const interpolatedPoints = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const [p1, p2] = [points[i], points[i + 1]];
+    const dx = (p2.x - p1.x) / (density + 1);
+    const dy = (p2.y - p1.y) / (density + 1);
+
+    for (let j = 1; j <= density; j++) {
+      interpolatedPoints.push({
+        x: p1.x + dx * j,
+        y: p1.y + dy * j
+      });
+    }
+    // 添加原始点，以保持曲线经过所有给定点
+    interpolatedPoints.push(p2);
+  }
+  return interpolatedPoints;
+}
+
+
+export function roundDownToEven(num) {
+  if (num % 2 === 1) { // 检查是否为奇数
+    return num + 1; // 如果是奇数，则减去1得到偶数
+  }
+  return num; // 如果是偶数，则直接返回
+}
+
+
+export function addArrays(arr1, arr2) {
+  const result = [];
+  const maxLength = Math.max(arr1.length, arr2.length);
+
+  for (let i = 0; i < maxLength; i++) {
+    const sum = (arr1[i] || 0) + (arr2[i] || 0);
+    result.push(sum);
+  }
+
+  return result;
+}
+
+// 文本超长截取处理
+export function drawTexts(ctx, text, maxWidth) {
+  let currentWidth = 0;
+  let textI = text.length
+  for (let i = 0; i < text.length; i++) {
+    const letter = text[i];
+    currentWidth += ctx.measureText(letter).width;
+    if (currentWidth > maxWidth) {
+      textI = i
+      break; // 退出循环
+    }
+  }
+  return textI;
+}
+
+// 文本超长换行处理
+export function drawBreakText(ctx, text, maxWidth, position) {
+  let currentWidth = 0;
+  let lineHeight = 0;
+  let textI = text.length
+  let x = position.x; // 初始x坐标
+  let y = position.y; // 初始y坐标
+  let startIndex = 0
+  for (let i = 0; i < text.length; i++) {
+    const letter = text[i];
+    currentWidth += ctx.measureText(letter).width;
+    lineHeight = ctx.measureText(letter).height
+    if (currentWidth > maxWidth) {
+      // 绘制当前行的文本（不包含当前单词）
+      ctx.fillText(text.substring(startIndex, i + 1),  x, y)
+      // 重置当前行的宽度和y坐标
+      startIndex = i + 1
+      currentWidth = 0;
+      y += lineHeight;
+    }
+    // 如果是最后一个单词，或者遍历完所有单词，则绘制最后一行
+    if (i === text.length - 1 && startIndex !== text.length) {
+      ctx.fillText(text.substring(startIndex, i + 1),  x, y)
+      y += lineHeight;
+      text = ''; // 重置文本以开始新段落（如果需要）
+      currentWidth = 0; // 重置当前行宽度
+    }
+  }
+}
+
+// 睡眠
+function sleep(ms: number):Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 计时
+export async function countDownLatch(count: number) {
+  while (count > 0) {
+    await sleep(80);
+    count--;
+  }
+}
+
+export function isPointInsidePolygon(polygon, point) {
+  let x = point.x, y = point.y;
+
+  let inside = false;
+  let j = polygon.length - 1;
+  for (let i = 0; i < polygon.length; i++) {
+    let xi = polygon[i].x, yi = polygon[i].y;
+    let xj = polygon[j].x, yj = polygon[j].y;
+
+    let intersect = ((yi > y) !== (yj > y)) &&
+      (x <= (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+
+    j = i;
+  }
+  return inside;
+}
+
+export function rotatePoint(x, y, centerX, centerY, deltaTheta) {
+  let translatedX = x - centerX;
+  let translatedY = y - centerY;
+  let r = Math.sqrt(translatedX * translatedX + translatedY * translatedY);
+  let theta = Math.atan2(translatedY, translatedX);
+  // let thetaDegrees = theta * (180 / Math.PI);
+  theta = theta + deltaTheta;
+  // // 确保newTheta在0到2π之间
+  theta = theta % (2 * Math.PI);
+  if (theta < 0) {
+    theta += 2 * Math.PI;
+  }
+  x = r * Math.cos(theta)
+  y = r * Math.sin(theta)
+  return {x, y};
+}
+
+export function assign(target: Object, ...source: Object[]): Object {
+  for (const items of source) {
+    for (const key of Object.keys(items)) {
+      target[key] = Reflect.get(items, key)
+    }
+  }
+  return target;
+}
+
+export function maxMinSumSeparatedBySign(data): Array<number> {
+  // 初始化两个数组用于存储每个位置上的正数和与负数和
+  let positiveSums = new Array(data[0].length).fill(0);
+  let negativeSums = new Array(data[0].length).fill(0);
+
+  // 遍历二维数组中的每一个元素
+  data.forEach(row => {
+    row.forEach((value, i) => {
+      if (value > 0) {  // 如果是正数，累加到正数和中
+        positiveSums[i] += value;
+      } else if (value < 0) {  // 如果是负数，累加到负数和中
+        negativeSums[i] += value;
+      }
+    });
+  });
+
+  // 计算最大值和最小值
+  let maxVal = Math.max(...positiveSums.map((pos, i) => Math.max(pos, negativeSums[i])));
+  let minVal = Math.min(...negativeSums.map((neg, i) => Math.min(neg, positiveSums[i])));
+  return [maxVal, minVal]
 }

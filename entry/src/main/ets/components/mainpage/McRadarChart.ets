@@ -1,11 +1,11 @@
-import { InterfaceObj } from '../../utils/chartInterface'
-import DrawPoint from '../../utils/drawPoint'
+import DrawRadar from '../../utils/drawRadar'
 import { Chart } from './Chart'
 import { Options } from './Options'
+import { InterfaceObj } from '../../utils/chartInterface'
 import { Chart as CommonChart } from '../../utils/charts'
-let drawMcPointChart: CommonChart;
+let drawMcLineChart: CommonChart;
 @Component
-export struct McPointChart {
+export struct McRadarChart {
   @ObjectLink @Watch('onCountUpdated') options: Options;
   @State chartOption: Options = new Options({})
   private click: Function = (event: InterfaceObj, params: InterfaceObj) => {}
@@ -17,12 +17,12 @@ export struct McPointChart {
   }
   aboutToAppear() {
     this.onCountUpdated()
-    drawMcPointChart = new DrawPoint()
+    drawMcLineChart = new DrawRadar()
   }
   build() {
     Chart({
       options: this.chartOption,
-      drawMcChart: drawMcPointChart,
+      drawMcChart: drawMcLineChart,
       customTooltip: this.customTooltip,
       click: (event: InterfaceObj, params: InterfaceObj) => {
         this.click(event, params)
@@ -33,3 +33,4 @@ export struct McPointChart {
     })
   }
 }
+

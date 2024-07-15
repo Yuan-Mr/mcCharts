@@ -1,7 +1,8 @@
 import { calculateNum, pointInsideCircle } from './index'
 import { Chart } from './charts'
+import { axisLineStyle, yLineStyle } from './defaultOption'
 /**
- * 柱状图
+ * 散点图
  */
 class DrawPoint extends Chart {
   constructor () {
@@ -198,8 +199,9 @@ class DrawPoint extends Chart {
     ctx.translate(cPaddingL, H - cPaddingB)
     const { axisTick, splitLine, axisLine = {}, axisLabel, data } = this.xAxis;
     const {show: axisLineShow = true} = axisLine
+    const { show: axisTickShow = true, interval = 4, length: axisTickLength = 5 } = axisTick || {}
     if (axisLineShow) {
-      const { color = '#333', width = 1  } = axisLine.lineStyle;
+      const { color = '#333', width = 1 } = {...axisLineStyle, ...(axisLine.lineStyle || {})};
       this.setCtxStyle({
         strokeStyle: color,
         lineWidth: width
@@ -214,26 +216,26 @@ class DrawPoint extends Chart {
       xs = (W - cPaddingL - cPaddingR) / (xl - 1)
       data.forEach((obj, i) => {
         let x = xs * (i)
-        if (axisTick.show) {
-          const { color, width } = axisTick.lineStyle;
+        if (axisTickShow) {
+          const { color = '#333', width = 1 } = {...axisLineStyle, ...(axisTick.lineStyle || {})};
           ctx.beginPath()
           this.setCtxStyle({
             strokeStyle: color,
             lineWidth: width
           })
           ctx.moveTo(x, 0)
-          ctx.lineTo(x, axisTick.length)
+          ctx.lineTo(x, axisTickLength)
           ctx.stroke()
         }
         // 设置文本属性
-        const {color, fontWeight, fontSize, fontFamily} = axisLabel
+        const { color = '#333', fontWeight = 'normal', fontSize = 'sans-serif', fontFamily = 18 } = axisLabel
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         this.ctx.fillStyle = color
         const text = String(obj)
         const txtW = this.ctx.measureText(text).width; // 获取文字的长度
         const txtH = this.ctx.measureText(text).height; // 获取文字的长度
         const textX = x - txtW / 2
-        const textY = axisTick.length + 5 + txtH / 2
+        const textY = axisTickLength + 5 + txtH / 2
         ctx.textBaseline = 'middle'
         ctx.fillText(text, textX, textY)
       })
@@ -243,11 +245,13 @@ class DrawPoint extends Chart {
   drawY() {
     if (!Array.isArray(this.yAxis)) {
       const { axisTick, splitLine, axisLine, axisLabel, nameTextStyle } = this.yAxis;
+      const { show: axisTickShow = true, interval: axisTickInterval = 4, length: axisTickLength = 5 } = axisTick || {}
+      const { show: splitLineShow = true } = splitLine || {}
       let ctx = this.ctx
       let nameH = 0
       // ctx.fillStyle = 'hsl(200,100%,60%)'
       if (this.yAxis && this.yAxis.name) {
-        const {color, fontWeight, fontSize, fontFamily} = nameTextStyle
+        const { color = '#333', fontWeight = 'normal', fontSize = 'sans-serif', fontFamily = 18 } = nameTextStyle
         this.ctx.fillStyle = color
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
@@ -263,20 +267,20 @@ class DrawPoint extends Chart {
       let yl = this.info.num
       let ys = ydis / yl
       for (let i = 0; i <= yl; i++) {
-        if (axisTick.show) {
-          const { color, width } = axisTick.lineStyle;
+        if (axisTickShow) {
+          const { color = '#333', width = 1 } = {...axisLineStyle, ...(axisTick.lineStyle || {})};
           ctx.beginPath()
           this.setCtxStyle({
             strokeStyle: color,
             lineWidth: width
           })
-          ctx.moveTo(-5, -Math.floor(ys * i))
+          ctx.moveTo(-axisTickLength, -Math.floor(ys * i))
           ctx.lineTo(0, -Math.floor(ys * i))
           ctx.stroke()
         }
 
-        if (i > 0 && splitLine.show) {
-          const { color, width } = splitLine.lineStyle;
+        if (i > 0 && splitLineShow) {
+          const { color = '#ccc', width = 1 } = {...yLineStyle, ...(splitLine.lineStyle || {})};
           this.setCtxStyle({
             strokeStyle: color,
             lineWidth: width
@@ -287,7 +291,7 @@ class DrawPoint extends Chart {
           ctx.stroke()
         }
 
-        const {color, fontWeight, fontSize, fontFamily} = axisLabel
+        const { color = '#333', fontWeight = 'normal', fontSize = 'sans-serif', fontFamily = 18 } = axisLabel
         this.ctx.fillStyle = color
         this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         ctx.textAlign = 'right'
@@ -295,12 +299,13 @@ class DrawPoint extends Chart {
         let txt = String(this.yAxis.formatter ? this.yAxis.formatter(dim) : dim)
         const txtH = this.ctx.measureText(txt).height; // 获取文字的长度
         ctx.textBaseline = 'middle'
-        ctx.fillText(txt, -8, -ys * i)
+        const interval = axisTickShow ? -(axisTickInterval + axisTickLength) : -8
+        ctx.fillText(txt, interval, -ys * i)
       }
-
+      const { show: axisLineShow = true } = axisLine
       // y轴
-      if (axisLine.show) {
-        const { color, width } = axisLine.lineStyle;
+      if (axisLineShow) {
+        const { color = '#333', width = 1 } = {...axisLineStyle, ...(axisLine.lineStyle || {})};
         this.setCtxStyle({
           strokeStyle: color,
           lineWidth: width

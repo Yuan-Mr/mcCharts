@@ -1,9 +1,9 @@
 import { Chart } from './charts'
-import { percentageConversion, isPointInSector } from './index'
-
+import { percentageConversion, isPointInSector, countDownLatch } from './index'
 class DrawPie extends Chart {
   private radius = ['70%']
   private center = ['50%', '50%']
+  private padAngle = 0
   // 标签设置，标签的视觉引导线配置
   private label = {
     show: true,
@@ -45,7 +45,7 @@ class DrawPie extends Chart {
     const that = this
     const ctx = this.ctx
     let startAng = -Math.PI / 2;
-    var isLegend = false;
+    let isLegend = false;
     let pos = {
       x: e.localX,
       y: e.localY
@@ -53,7 +53,7 @@ class DrawPie extends Chart {
     const [centerX, centerY] = that.setCenter(true)
     let [radius, innerRadius] = that.getRadius()
     if (isLegend || this.drawing) return;
-    for (var i = 0, l = this.animateArr.length; i < l; i++) {
+    for (let i = 0, l = this.animateArr.length; i < l; i++) {
       const item = this.animateArr[i];
       if (item.hide) continue;
       // 判断当前点击是否在某个扇形区域里面
@@ -104,16 +104,18 @@ class DrawPie extends Chart {
     ctx.save();
     that.setCenter()
     const { length, length2 } = labelLine
-    const { color, width } = lineStyle
-    for (var i = 0, l = that.animateArr.length; i < l; i++) {
+    const { color, width = 2 } = lineStyle
+    for (let i = 0, l = that.animateArr.length; i < l; i++) {
       item = that.animateArr[i];
       if (item.hide) continue;
+      j++
       ctx.strokeStyle = item.color;
       ctx.fillStyle = item.color;
-      angle = j >= len - 1 ? Math.PI * 2 - Math.PI / 2 : startAng + item.ang;
+
+      angle = startAng + item.ang - (index === len ? 0 : (this.padAngle / 2));
       if (label.show) {
         //画描述
-        var tr = radius,
+        let tr = radius,
           textAlign = 'center',
           tw = ctx.measureText(item.name).width,
           th = ctx.measureText(item.name).height,
@@ -125,11 +127,12 @@ class DrawPie extends Chart {
           ctx.strokeStyle = color || that.color[i];
           ctx.lineCap = 'round';
           ctx.beginPath();
-          ctx.moveTo(0, 0);
+          const innerR = (innerRadius + innerRadius / 2)
+          ctx.moveTo(innerR * Math.cos(tAng), innerR * Math.sin(tAng));
           if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
-            ctx.lineTo(x + (isLine ? length : 0), y);
+            ctx.lineTo(x + length, y);
           } else {
-            ctx.lineTo(x - (isLine ? length : 0), y);
+            ctx.lineTo(x - length, y);
           }
         }
         let labelX, labelY = y;
@@ -157,7 +160,7 @@ class DrawPie extends Chart {
         labels.push({
           textAlign,
           i,
-          value: label.formatter(item),
+          value: typeof label.formatter === 'function' ? label.formatter(item) : item.name,
           x: labelX,
           y: labelY
         })
@@ -167,35 +170,53 @@ class DrawPie extends Chart {
       ctx.moveTo(0, 0);
       ctx.save();
       // const new_r = r * percentageConversion(radius)
-      if (index === i) {
-        // ctx.save();
-        const { scale, scaleSize, shadowColor, shadowBlur, shadowOffsetX, shadowOffsetY } = that.emphasis
-        if (scale) {
-          ctx.shadowColor = shadowColor
-          ctx.shadowBlur = shadowBlur;
-          ctx.shadowOffsetX = shadowOffsetX;
-          ctx.shadowOffsetY = shadowOffsetY;
-        }
-        ctx.arc(0, 0, radius + (scale ? scaleSize : 0), startAng, angle, false);
-        ctx.closePath();
-        ctx.fill();
-        // ctx.stroke();
-      } else {
-        ctx.arc(0, 0, radius, startAng, angle, false);
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.restore();
       if (innerRadius) {
-        ctx.fillStyle = '#fff';
+        let outR = radius
+        let innerR = innerRadius
+        if (index === i) {
+          // ctx.save();
+          const { scale, scaleSize, shadowColor, shadowBlur, shadowOffsetX, shadowOffsetY } = that.emphasis
+          if (scale) {
+            ctx.shadowColor = shadowColor
+            ctx.shadowBlur = shadowBlur;
+            ctx.shadowOffsetX = shadowOffsetX;
+            ctx.shadowOffsetY = shadowOffsetY;
+          }
+          outR = radius + (scale ? scaleSize : 0)
+          innerR = innerR + (scale ? scaleSize : 0)
+        }
+        // 绘制扇形
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, innerRadius, startAng, startAng, false);
-        ctx.closePath();
-        ctx.fill();
+        // 移动到外圆的起始点
+        var startPoint = {
+          x: 0 + outR * Math.cos(startAng),
+          y: 0 + outR * Math.sin(startAng)
+        };
+        ctx.moveTo(startPoint.x, startPoint.y);
+        // 绘制外圆的圆弧
+        ctx.arc(0, 0, outR, startAng, angle);
+        // 绘制内圆的圆弧
+        ctx.arc(0, 0, innerR, angle, startAng, true);
+
+      } else {
+        if (index === i) {
+          // ctx.save();
+          const { scale, scaleSize, shadowColor, shadowBlur, shadowOffsetX, shadowOffsetY } = that.emphasis
+          if (scale) {
+            ctx.shadowColor = shadowColor
+            ctx.shadowBlur = shadowBlur;
+            ctx.shadowOffsetX = shadowOffsetX;
+            ctx.shadowOffsetY = shadowOffsetY;
+          }
+          ctx.arc(0, 0, radius + (scale ? scaleSize : 0), startAng, angle, false);
+        } else {
+          ctx.arc(0, 0, radius, startAng, angle, false);
+        }
       }
-      startAng += item.ang;
-      j++;
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      startAng = angle + that.padAngle / 2;
     }
     labels.forEach(({i, value, x, y, textAlign}) => {
       ctx.textAlign = textAlign
@@ -204,93 +225,156 @@ class DrawPie extends Chart {
     ctx.restore();
   }
   animate() {
-    var that = this,
+    let that = this,
       ctx = that.ctx,
-      item, startAng, ang,
+      item, startAng, ang = 0,
+      len = that.animateArr.filter(item => !item.hide).length,
+      index = 0,
+      i = 0,
       isStop = true;
     let [radius, innerRadius] = that.getRadius()
-    function run() {
-      isStop = true;
-      ctx.save();
-      that.setCenter()
-      // ctx.fillStyle = '#fff';
-      // ctx.beginPath();
-      // ctx.arc(0, 0, that.H / 3 + 30, 0, Math.PI * 2, false);
-      // ctx.fill();
-      for (var i = 0, l = that.animateArr.length; i < l; i++) {
+    isStop = true;
+    // ctx.save();
+    const [cx, cy] = that.setCenter(true)
+    // startAng = -Math.PI / 2;
+    // for (let i = 0, l = that.animateArr.length; i < 2; i++) {
+    //   item = that.animateArr[i];
+    //   if (item.hide) continue;
+    //   index += 1
+    //   ctx.fillStyle = item.color;
+    //   const endAng = item.ang
+    //   ang = 0
+    //   ctx.beginPath();
+    //   ctx.moveTo(0, 0);
+    //   function run() {
+    //     // if (item.last > item.ang) {
+    //     //   ang += item.cur - 0.06;
+    //     //   if (ang < item.ang) {
+    //     //     item.cur = item.last = item.ang;
+    //     //   }
+    //     // } else {
+    //     //   ang += item.cur + 0.06;
+    //     //   if (ang > item.ang) {
+    //     //     item.cur = item.last = item.ang;
+    //     //   }
+    //     // }
+    //     ang += 0.06
+    //     // if (item.cur != item.ang) {
+    //     //   item.cur = ang;
+    //     //   isStop = false;
+    //     // }
+    //     console.log(item.cur, ang)
+    //     ctx.arc(0, 0, radius, startAng, startAng + ang, false);
+    //     // ctx.arc(0, 0, radius, i !== 0 ? startAng + that.padAngle : startAng, startAng + ang + (index === len ? that.padAngle: 0), false);
+    //     if (innerRadius) {
+    //       ctx.fillStyle = '#fff';
+    //       ctx.beginPath();
+    //       ctx.moveTo(0, 0);
+    //       ctx.arc(0, 0, innerRadius, startAng, startAng + item.ang, false);
+    //       ctx.closePath();
+    //       ctx.fill();
+    //     }
+    //     if (ang < item.ang) {
+    //       countDownLatch(30)
+    //       // run()
+    //     }
+    //   };
+    //   run()
+    //   ctx.closePath();
+    //   ctx.fill();
+    //   startAng += item.ang;
+    // }
+    // ctx.restore();
+    // if (isStop) {
+    //   // that.clearGrid();
+    //   return;
+    // }
+    // setTimeout(() => {
+    //   run()
+    // }, 1000 / 30)
+    let currentProgress = 0.13;
+    const speed = 0.02;
+    const data = that.animateArr
+    function draw() {
+      ctx.clearRect(0, 0, that.W, that.H);
+      var startAngle = -Math.PI / 2;
+      var endAngle;
+      var index = 0;
+      for (let i = 0, l = that.animateArr.length; i < l; i++) {
         item = that.animateArr[i];
         if (item.hide) continue;
-        startAng = -Math.PI / 2;
-        that.animateArr.forEach((obj, j) => {
-          if (j < i && !obj.hide) { startAng += obj.cur; }
-        });
+        index += 1
+        // 计算扇形的结束角度
+        const ang = (item.ang) * currentProgress
+        endAngle = startAngle + ang - (index === len ? 0 : (that.padAngle / 2))
 
-        ctx.fillStyle = item.color;
-        if (item.last > item.ang) {
-          ang = item.cur - 0.06;
-          if (ang < item.ang) {
-            item.cur = item.last = item.ang;
-          }
-        } else {
-          ang = item.cur + 0.06;
-          if (ang > item.ang) {
-            item.cur = item.last = item.ang;
-          }
-        }
-        if (item.cur != item.ang) {
-          item.cur = ang;
-          isStop = false;
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius, startAng, startAng + item.cur, false);
-        ctx.closePath();
-        ctx.fill();
+        // 绘画内部扇形
         if (innerRadius) {
-          ctx.fillStyle = '#fff';
+          // 绘制扇形
           ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.arc(0, 0, innerRadius, startAng, startAng + item.cur, false);
-          ctx.closePath();
-          ctx.fill();
+          // 移动到外圆的起始点
+          var startPoint = {
+            x: cx + radius * Math.cos(startAngle),
+            y: cy + radius * Math.sin(startAngle)
+          };
+          ctx.moveTo(startPoint.x, startPoint.y);
+          // 绘制外圆的圆弧
+          ctx.arc(cx, cy, radius, startAngle, endAngle);
+          // 绘制内圆的圆弧
+          ctx.arc(cx, cy, innerRadius, endAngle, startAngle, true);
+        } else {
+          // 绘制扇形
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, radius, startAngle, endAngle);
         }
-      }
-      ctx.restore();
-      if (isStop) {
+        // 闭合路径
+        ctx.closePath();
+        ctx.fillStyle = item.color;
+        ctx.fill();
+        // 更新起始角度，加上间隔角度
+        startAngle = endAngle + (that.padAngle / 2);
+      };
+      // 更新当前角度
+      currentProgress += speed;
+      // 检查是否完成整个圆的绘制
+      if (currentProgress <= 1) {
+        // 使用setTimeout来模拟requestAnimationFrame
+        setTimeout(draw, 16); // 大约每16毫秒更新一次，模拟60fps
+      } else {
         that.clearGrid();
-        return;
       }
-      // requestAnimationFrame(run);
-      setTimeout(() => {
-        run()
-      }, 1000 / 60)
-    };
-    run()
+      // // 循环动画
+      // if (currentAngle > 2 * Math.PI) {
+      //   // currentAngle -= 2 * Math.PI;
+      //   return
+      // }
+      // 使用setTimeout来模拟requestAnimationFrame
+      // setTimeout(draw, 16)
+    }
+    draw()
   }
   create() {
     this.initData();
-    this.drawLegend(this.pieData);
     this.animate();
   }
   initData() {
-    var that = this,
-      item,
-      total = 0;
-    this.pieData = []
+    let item, total = 0;
+    // this.pieData = []
     for (let i = 0; i < this.series.length; i++) {
       item = this.series[i]
-      that.radius = item.radius || ['60%']
-      that.center = item.center || ['50%', '50%']
-      that.label = Object.assign({}, item.label)
-      that.emphasis = Object.assign({}, that.emphasis, item.emphasis || {})
-      that.labelLine = Object.assign({}, that.labelLine, item.labelLine || {})
-      that.lineStyle = Object.assign({}, that.lineStyle, item.labelLine?.lineStyle || {})
-      this.pieData = this.pieData.concat(item.data || [])
+      this.radius = item.radius || ['60%']
+      this.center = item.center || ['50%', '50%']
+      this.label = Object.assign({}, this.label, item.label)
+      this.emphasis = Object.assign({}, this.emphasis, item.emphasis || {})
+      this.labelLine = Object.assign({}, this.labelLine, item.labelLine || {})
+      this.lineStyle = Object.assign({}, this.lineStyle, item.labelLine?.lineStyle || {})
+      this.padAngle = (item.padAngle || 0) * 2 * Math.PI / 360
+      this.pieData = item.data || []
     }
 
     this.legendData.length = 0;
-    for (var i = 0; i < this.pieData.length; i++) {
+    for (let i = 0; i < this.pieData.length; i++) {
       item = this.pieData[i];
       // 赋予没有颜色的项
       if (!item.color) {
@@ -298,10 +382,10 @@ class DrawPie extends Chart {
       }
       item.name = item.name || 'unnamed';
       if (item.hide) continue;
-      total += item.value;
+      total += Math.abs(item.value);
     }
 
-    for (var i = 0; i < this.pieData.length; i++) {
+    for (let i = 0; i < this.pieData.length; i++) {
       item = this.pieData[i];
       this.animateArr.push({
         i: i,
@@ -311,7 +395,7 @@ class DrawPie extends Chart {
         color: item.color,
         num: item.value,
         percent: Math.round(item.value / total * 10000) / 100,
-        ang: Math.round(item.value / total * Math.PI * 2 * 100) / 100,
+        ang: (item.value / total) * Math.PI * 2,
         last: 0,
         cur: 0
       });
