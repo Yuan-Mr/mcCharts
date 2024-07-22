@@ -1,4 +1,4 @@
-import {McBarChart, McPieChart, McPointChart, Options} from '../components/index'
+import {McBarChart, McPieChart, McPointChart, Options, chartInterface} from '../components/index'
 @Entry
 @Component
 struct Index {
@@ -174,7 +174,7 @@ struct Index {
       {
         name:'高气温',
         color: '#ff2659f5',
-        symbolSize: function (data: any): string | number {
+        symbolSize: (data: chartInterface.InterfaceObj): string | number => {
           return data.xVal
         },
         data: [

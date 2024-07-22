@@ -12,7 +12,7 @@ IndentCaseLabels: false
 IndentGotoLabels: true
 IndentWrappedFunctionNames: false
 SortUsingDeclarations: false
-NamespaceIndentation: All
+NamespaceIndentation: None
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: true

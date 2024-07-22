@@ -1,9 +1,12 @@
 import {
+  McLineChart,
+  McBarChart,
   McPieChart,
+  McPointChart,
   Options,
-  chartInterface
-} from 'meichuangtools'
-
+  chartInterface,
+  McRadarChart
+} from '../components/index'
 @Entry
 @Component
 struct mcPieChart {

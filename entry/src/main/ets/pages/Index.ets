@@ -8,7 +8,7 @@ import {
   Options,
   chartInterface,
   McRadarChart
-} from 'meichuangtools'
+} from '../components/index'
 
 @Extend(Text)
 function fancy(tooltipInfo: chartInterface.InterfaceObj) {
