@@ -61,7 +61,7 @@ interface TooltipInterface {
 
 // 数据层的特征接口
 interface SeriesInterface {
-  name: string,
+  name?: string,
   color?: string,
   lineStyle?: InterfaceObj,
   barStyle?: InterfaceObj,
@@ -76,7 +76,7 @@ interface SeriesInterface {
   radius?: string[],
   center?: string[],
   smooth?: boolean,
-  data: Array<string | number | InterfaceObj>
+  data?: Array<string | number | InterfaceObj>
 }
 
 // 缩放的特征接口

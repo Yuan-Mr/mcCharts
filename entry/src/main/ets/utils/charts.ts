@@ -11,6 +11,8 @@ export class Chart {
   type: string;
   ctx: any;
   offContext: any;
+  offCanvas: any;
+  renderType: any;
   W: number;
   H: number;
   cPaddingT: number = 30;
@@ -43,12 +45,16 @@ export class Chart {
     }
   }
 
-  init (ctx, opt, offContext) {
+  init (ctx, opt, offContext, renderType, offCanvas?) {
     this.ctx = ctx
     this.W = ctx.width
     this.H = ctx.height
     this.animateArr = []
     this.offContext = offContext
+    if (offCanvas) {
+      this.offCanvas = offCanvas
+    }
+    this.renderType = renderType
     // this.ctx.imageSmoothingQuality = 'high'
     ctx.translate(0, 0);
     ctx.restore()
@@ -159,6 +165,7 @@ export class Chart {
     this.dataZoom.end = newEnd
     ctx.clearRect(0, 0, this.W, this.H);
     this.animateArr = []
+    this.renderType = 'update'
     this.create()
   }
 

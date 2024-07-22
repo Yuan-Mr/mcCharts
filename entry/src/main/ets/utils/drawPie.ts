@@ -127,7 +127,7 @@ class DrawPie extends Chart {
           ctx.strokeStyle = color || that.color[i];
           ctx.lineCap = 'round';
           ctx.beginPath();
-          const innerR = (innerRadius + innerRadius / 2)
+          const innerR = (innerRadius + (innerRadius - innerRadius) / 2)
           ctx.moveTo(innerR * Math.cos(tAng), innerR * Math.sin(tAng));
           if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
             ctx.lineTo(x + length, y);
@@ -188,7 +188,7 @@ class DrawPie extends Chart {
         // 绘制扇形
         ctx.beginPath();
         // 移动到外圆的起始点
-        var startPoint = {
+        let startPoint = {
           x: 0 + outR * Math.cos(startAng),
           y: 0 + outR * Math.sin(startAng)
         };
@@ -297,9 +297,9 @@ class DrawPie extends Chart {
     const data = that.animateArr
     function draw() {
       ctx.clearRect(0, 0, that.W, that.H);
-      var startAngle = -Math.PI / 2;
-      var endAngle;
-      var index = 0;
+      let startAngle = -Math.PI / 2;
+      let endAngle;
+      let index = 0;
       for (let i = 0, l = that.animateArr.length; i < l; i++) {
         item = that.animateArr[i];
         if (item.hide) continue;
@@ -313,7 +313,7 @@ class DrawPie extends Chart {
           // 绘制扇形
           ctx.beginPath();
           // 移动到外圆的起始点
-          var startPoint = {
+          let startPoint = {
             x: cx + radius * Math.cos(startAngle),
             y: cy + radius * Math.sin(startAngle)
           };

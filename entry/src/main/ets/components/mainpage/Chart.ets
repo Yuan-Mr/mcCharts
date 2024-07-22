@@ -1,16 +1,7 @@
 import { InterfaceObj } from '../../utils/chartInterface'
-import { Tooltip } from './Tooltip'
+import { Tooltip, globalBuilder } from './Tooltip'
 import { Options } from './Options'
 import { Chart as CommonChart } from '../../utils/charts'
-import { getDistance } from '../../utils/index'
-
-let scale = 1;
-let translateX = 0;
-const SOME_SCALING_FACTOR = 0.05;
-let pinchStartTime = 0;
-let initialDistance = 0;
-let currentDistance = 0;
-let lastScaleVelocity = 0; // 上一次的缩放速度
 
 @Component
 export struct Chart {
@@ -21,12 +12,13 @@ export struct Chart {
   private click: Function = () => {};
   private tooltipClick: Function = () => {};
   @ObjectLink @Watch('onCountUpdated') options: Options;
+  @Link renderType: string
   @State isTooltipShow: boolean = false
   @State isZoom: boolean = false
   @State isScale: boolean = false
   @State tooltipInfo: InterfaceObj = {}
   private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.Left | PanDirection.Right, distance: 1 })
-  @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void; // 自定义组件
+  @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void = globalBuilder; // 自定义组件
 
   onCountUpdated(options: Options): void {
     this.isTooltipShow = false
@@ -34,7 +26,7 @@ export struct Chart {
       const offCanvas: OffscreenCanvas = new OffscreenCanvas(this.context.width, this.context.height)
       this.offContext = offCanvas.getContext("2d", this.settings)
     }
-    this.drawMcChart && this.drawMcChart.init(this.context, this.options, this.offContext)
+    this.drawMcChart && this.drawMcChart.init(this.context, this.options, this.offContext, this.renderType)
   }
 
   showInfo (flag: boolean, event: InterfaceObj = {}, pos?: InterfaceObj, title?: string, arr?: [], tooltipInfo: InterfaceObj = {}) {
@@ -64,6 +56,7 @@ export struct Chart {
       })
     }
   }
+
   build() {
     Column () {
       Canvas(this.context)
@@ -72,7 +65,7 @@ export struct Chart {
         .onReady(() => {
           const offCanvas: OffscreenCanvas = new OffscreenCanvas(this.context.width, this.context.height)
           this.offContext = offCanvas.getContext("2d", this.settings)
-          this.drawMcChart && this.drawMcChart.init(this.context, this.options, this.offContext)
+          this.drawMcChart && this.drawMcChart.init(this.context, this.options, this.offContext, this.renderType, offCanvas)
         })
         .onClick((event) => {
           if (this.drawMcChart) {
@@ -115,11 +108,6 @@ export struct Chart {
             })
             .onActionEnd((event: GestureEvent) => {
               this.isScale = false
-              lastScaleVelocity = 0
-              pinchStartTime = 0
-              initialDistance = 0
-              currentDistance = 0
-              scale = 1
             })
         )
 

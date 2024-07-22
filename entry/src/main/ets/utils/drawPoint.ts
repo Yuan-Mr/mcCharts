@@ -22,7 +22,7 @@ class DrawPoint extends Chart {
     let obj;
     let activeI = null;
     let activeJ = null;
-    for (var i = 0, l = this.animateArr.length; i < l; i++) {
+    for (let i = 0, l = this.animateArr.length; i < l; i++) {
       const item = this.animateArr[i];
       if (item.hide) continue;
       // 判断当前点击是否在某个圆形区域里面

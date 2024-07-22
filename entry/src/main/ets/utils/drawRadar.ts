@@ -36,7 +36,7 @@ class DrawRadar extends Chart {
     const ctx = this.ctx
     const w = this.W
     let startAngle = 0;
-    var isLegend = false;
+    let isLegend = false;
     let pos = {
       x: e.localX,
       y: e.localY
@@ -55,7 +55,7 @@ class DrawRadar extends Chart {
     let rotatedMousePoint = rotatePoint(pos.x, pos.y, centerX, centerY, radarStartAngle * 2 * Math.PI / 360);
     if (isLegend || this.drawing) return;
     let activeIndex = null
-    for (var i = 0, l = points.length; i < l; i++) {
+    for (let i = 0, l = points.length; i < l; i++) {
       const item = points[i];
       if (item.hide) continue;
       // 判断当前点击是否在某个扇形区域里面
@@ -98,7 +98,7 @@ class DrawRadar extends Chart {
   initData() {
     const dataArr = this.series
     let allArr = [];
-    for (var i = 0; i < dataArr.length; i++) {
+    for (let i = 0; i < dataArr.length; i++) {
       dataArr[i].data.forEach(item => {
         allArr.push(this.getValue(item))
       })

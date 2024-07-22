@@ -17,7 +17,7 @@ class DrawLine extends Chart {
     const xs = (this.W - this.cPaddingL - this.cPaddingR) / ((xEnd - xStart) || 1)
     let index = 0;
     let dataIndex = 0;
-    var isLegend = false;
+    let isLegend = false;
     let pos = {
       x: e.localX,
       y: e.localY
@@ -26,7 +26,7 @@ class DrawLine extends Chart {
     // 鼠标位置在图表中时
     if (pos.y > this.cPaddingT && pos.y < this.H - this.cPaddingB && pos.x > this.cPaddingL && pos.x < this.W - this.cPaddingR) {
       // canvas.style.cursor = 'pointer';
-      for (var i = 0; i < (xEnd - xStart); i++) {
+      for (let i = 0; i < (xEnd - xStart); i++) {
         if (pos.x > i * xs + this.cPaddingL) {
           index = i;
           dataIndex = i + xStart;
@@ -36,8 +36,8 @@ class DrawLine extends Chart {
       if (!obj) return
       this.clearGrid(index);
       // 获取处于当前位置的信息
-      var arr = [];
-      for (var j = 0, item, l = this.animateArr.length; j < l; j++) {
+      let arr = [];
+      for (let j = 0, item, l = this.animateArr.length; j < l; j++) {
         item = this.animateArr[j];
         if (item.hide) continue;
         arr.push({ name: item.name, num: item.data[index].num })
@@ -321,7 +321,7 @@ class DrawLine extends Chart {
           item.data.slice(xStart, xEnd).forEach((d, j) => {
             obj.data.push({
               num: d,
-              h: Math.floor((d - min) / (max - min) * ydis + 2),
+              h: (d - min) / (max - min) * ydis,
               p: 0,
               x: Math.round(xs * (j + 1) - xs / 2),
               y: 0
@@ -380,9 +380,9 @@ class DrawLine extends Chart {
       // 获取是否滚动
       let xInterval = 1
       const { color = '#999999', fontWeight = 'normal', fontSize = 22, fontFamily = 'sans-serif', overflow = 'none', margin = 5 } = axisLabel
+      // 先判断是否已经超出整条x轴线长度了
+      const { interval: axisLabelInterval = 'auto' } = axisLabel
       if (!zoomShow) {
-        // 先判断是否已经超出整条x轴线长度了
-        const { interval: axisLabelInterval = 'auto' } = axisLabel
         xInterval = axisLabelInterval === 'auto' ? 1 : (Math.max(axisLabelInterval, 1) + 1)
         if (axisLabelInterval === 'auto') {
           let maxTextWidth = 0
@@ -393,7 +393,7 @@ class DrawLine extends Chart {
             ctx.textBaseline = 'middle'
             obj = String(formatter ? formatter(obj) : obj)
             const txtW = this.ctx.measureText(obj).width; // 获取文字的长度
-            maxTextWidth += Math.min(txtW, xs)
+            maxTextWidth += txtW
           })
           if (maxTextWidth > xWidth * 0.8) {
             xInterval = Math.round(maxTextWidth / (xWidth)) + 1
@@ -418,7 +418,7 @@ class DrawLine extends Chart {
         this.ctx.fillStyle = color
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        if (i % xInterval === 0) {
+        if (i % xInterval === 0 || axisLabelInterval === 0) {
           obj = String(formatter ? formatter(obj) : obj)
           // 这里后续可以支持设置文字与x轴的距离
           const textX = x - xs / 2

@@ -1,4 +1,27 @@
 import { InterfaceObj } from '../../utils/chartInterface'
+@Builder
+function globalBuilder($$: InterfaceObj) {
+  Column() {
+    if($$.tooltipInfo.title) {
+      Text($$.tooltipInfo.title)
+        .fancy($$.tooltipInfo)
+        .margin({
+          bottom: 8
+        })
+    }
+    ForEach($$.tooltipInfo.data, (item: InterfaceObj, index) => {
+      Text(item.name + '：' + item.num)
+        .fancy($$.tooltipInfo)
+    })
+  }
+  .alignItems(HorizontalAlign.Start)
+  .padding($$.tooltipInfo.padding)
+  .backgroundColor($$.tooltipInfo.backgroundColor)
+  .borderColor($$.tooltipInfo.borderColor)
+  .borderWidth($$.tooltipInfo.borderWidth)
+  .borderRadius(10)
+}
+
 @Extend(Text) function fancy (tooltipInfo: InterfaceObj) {
   .fontSize(tooltipInfo.textStyle.fontSize || 14)
   .fontColor(tooltipInfo.textStyle.color || '#fff')
@@ -6,6 +29,9 @@ import { InterfaceObj } from '../../utils/chartInterface'
   .fontFamily(tooltipInfo.textStyle.fontFamily ||'sans-serif')
 }
 
+export {
+  globalBuilder
+}
 
 @Component
 export struct Tooltip {
@@ -13,7 +39,7 @@ export struct Tooltip {
   @State x: number = -1000;
   @State y: number = -1000;
   // 自定义提示组件
-  @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void;
+  @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void = globalBuilder;
 
   onTooltipInfoUpdated (): void {
     const pos: InterfaceObj = this.tooltipInfo.pos
@@ -48,31 +74,9 @@ export struct Tooltip {
   }
   build() {
     Column () {
-      if (this.customTooltip) {
-        this.customTooltip({
-          tooltipInfo: this.tooltipInfo
-        })
-      } else {
-        Column() {
-          if(this.tooltipInfo.title) {
-            Text(this.tooltipInfo.title)
-              .fancy(this.tooltipInfo)
-              .margin({
-                bottom: 8
-              })
-          }
-          ForEach(this.tooltipInfo.data, (item: InterfaceObj, index) => {
-            Text(item.name + '：' + item.num)
-              .fancy(this.tooltipInfo)
-          })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .padding(this.tooltipInfo.padding)
-        .backgroundColor(this.tooltipInfo.backgroundColor)
-        .borderColor(this.tooltipInfo.borderColor)
-        .borderWidth(this.tooltipInfo.borderWidth)
-        .borderRadius(10)
-      }
+      this.customTooltip({
+        tooltipInfo: this.tooltipInfo
+      })
     }
     .alignItems(HorizontalAlign.Start)
     .position({

@@ -1,6 +1,7 @@
 import { InterfaceObj, LegendInterface, TooltipInterface, SeriesInterface, AxisInterface, DataZoomInterface, RadarInterface } from '../../utils/chartInterface'
 import { seriesOpt, xAxisOpt, yAxisOpt, tooltip, legend, legendTextStyle, dataZoom, radar } from '../../utils/defaultOption'
 import { deepCopy, assign } from '../../utils/index'
+
 @Observed
 export class Options {
   cPaddingT: number = 30;
@@ -58,7 +59,15 @@ export class Options {
           this.radar = options[item]
           break
         case 'series':
-          this.series = options[item]
+          const seriesData: SeriesInterface[] = options[item]
+          if (this.series.length === seriesData.length) {
+            this.series = this.series.map((item: SeriesInterface, index): SeriesInterface => {
+              item = assign(item, seriesData[index])
+              return item
+            })
+          } else {
+            this.series = options[item]
+          }
           break
       }
     })

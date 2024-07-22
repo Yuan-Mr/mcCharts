@@ -1,3 +1,5 @@
+import { InterfaceObj, LegendInterface, TooltipInterface, SeriesInterface, AxisInterface, DataZoomInterface, RadarInterface } from './chartInterface'
+
 // 判断对象属性
 const typeOf = function (obj) {
   const toString = Object.prototype.toString
@@ -243,7 +245,7 @@ export function drawBreakText(ctx, text, maxWidth, position) {
     const letter = text[i];
     currentWidth += ctx.measureText(letter).width;
     lineHeight = ctx.measureText(letter).height
-    if (currentWidth > maxWidth) {
+    if (currentWidth > maxWidth * 0.6) {
       // 绘制当前行的文本（不包含当前单词）
       ctx.fillText(text.substring(startIndex, i + 1),  x, y)
       // 重置当前行的宽度和y坐标
@@ -309,7 +311,7 @@ export function rotatePoint(x, y, centerX, centerY, deltaTheta) {
   return {x, y};
 }
 
-export function assign(target: Object, ...source: Object[]): Object {
+export function assign(target: object, ...source: object[]): object {
   for (const items of source) {
     for (const key of Object.keys(items)) {
       target[key] = Reflect.get(items, key)
@@ -338,4 +340,57 @@ export function maxMinSumSeparatedBySign(data): Array<number> {
   let maxVal = Math.max(...positiveSums.map((pos, i) => Math.max(pos, negativeSums[i])));
   let minVal = Math.min(...negativeSums.map((neg, i) => Math.min(neg, positiveSums[i])));
   return [maxVal, minVal]
+}
+
+export function drawRoundedRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+
+  // 确保半径不会大于宽度或高度的一半
+  // r = Math.min(r, Math.abs(w / 2), Math.abs(h / 2));
+  const [topLeft = 0, topRight = 0, bottomRight = 0, bottomLeft = 0] = r.map(r => Math.min(r, Math.abs(w / 2), Math.abs(h / 2)));
+
+  if (h < 0) {
+    // 负高度的情况
+    y += h; // 调整y坐标，使图形从正确的起点开始绘制
+    h = -h; // 取绝对值，以便接下来的绘制代码可以正常工作
+
+    // 左上角（现为右下角）
+    ctx.moveTo(x + topRight, y);
+    ctx.lineTo(x + w - topRight, y);
+    ctx.arcTo(x + w, y, x + w, y + topRight, topRight); // 顺时针弧线
+
+    // 左下角
+    ctx.lineTo(x + w, y + h - bottomRight);
+    ctx.arcTo(x + w, y + h, x + w - bottomRight, y + h, bottomRight); // 逆时针弧线
+
+    // 左下角（现为右上角）
+    ctx.lineTo(x + bottomLeft, y + h);
+    ctx.arcTo(x, y + h, x, y + h - bottomLeft, bottomLeft); // 顺时针弧线
+
+    // 左上角（现为左上角）
+    ctx.lineTo(x, y + topLeft);
+    ctx.arcTo(x, y, x + topLeft, y, topLeft); // 逆时针弧线
+  } else {
+    ctx.moveTo(x + bottomRight, y);
+    ctx.lineTo(x + w - bottomRight, y);
+    ctx.arcTo(x + w, y, x + w, y + bottomRight, bottomRight);
+
+    // 右上角
+    ctx.lineTo(x + w, y + h - topRight);
+    ctx.arcTo(x + w, y + h, x + w - topRight, y + h, topRight);
+
+    ctx.lineTo(x + topLeft, y + h);
+    ctx.arcTo(x, y + h, x, y + h - topLeft, topLeft);
+
+    //
+    ctx.lineTo(x, y + bottomLeft);
+    ctx.arcTo(x, y, x + bottomLeft, y, bottomLeft);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+
+export function lerp (start, end, t) { // 线性插值
+  return start * (1 - t) + end * t;
 }

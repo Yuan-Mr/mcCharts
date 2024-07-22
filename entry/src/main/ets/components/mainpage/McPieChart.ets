@@ -1,6 +1,7 @@
 import DrawPie from '../../utils/drawPie'
 import { Chart } from './Chart'
 import { Options } from './Options'
+import { globalBuilder } from './Tooltip'
 import { InterfaceObj } from '../../utils/chartInterface'
 import { Chart as CommonChart } from '../../utils/charts'
 import { assign } from '../../utils/index'
@@ -16,6 +17,7 @@ let drawMcPieChart: CommonChart;
 export struct McPieChart {
   @ObjectLink @Watch('onCountUpdated') options: Options;
   @State chartOption: Options = new Options({})
+  @State renderType: string = 'init'
   private click: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   private tooltipClick: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   @State titleOption: InterfaceObj = {
@@ -42,7 +44,9 @@ export struct McPieChart {
     position: '',
     fontSize: 12
   };
-  @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void; // 自定义组件
+  @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void = globalBuilder; // 自定义组件
+
+  // @BuilderParam customTitle: (titleInfo: InterfaceObj) => void; // 自定义Title
   // @Watch 回调
   onCountUpdated(): void {
     this.chartOption = new Options(this.options)
@@ -56,11 +60,13 @@ export struct McPieChart {
     this.onCountUpdated()
     drawMcPieChart = new DrawPie()
   }
+
   build() {
     Column() {
       Chart({
         options: this.chartOption,
         drawMcChart: drawMcPieChart,
+        renderType: this.renderType,
         customTooltip: this.customTooltip,
         click: (event: InterfaceObj, params: InterfaceObj) => {
           this.click(event, params)

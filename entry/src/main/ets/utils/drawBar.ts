@@ -1,8 +1,11 @@
 import { Chart } from './charts'
-import { calculateNum, addArrays, drawTexts, drawBreakText, maxMinSumSeparatedBySign } from './index'
+import { calculateNum, lerp, drawTexts, drawBreakText, maxMinSumSeparatedBySign, deepCopy, drawRoundedRect } from './index'
 import { axisLineStyle, yLineStyle, barStyle as commonBarStyle, label as commonLabel } from './defaultOption'
 import { InterfaceObj } from './chartInterface';
 let timer = null
+let transitionStart = null
+let transitionDuration = 800
+let previousData = []
 /**
  * 柱状图
  */
@@ -16,7 +19,7 @@ class DrawBar extends Chart {
     const ctx = this.ctx;
     const xs = (this.W - this.cPaddingL - this.cPaddingR) / ((xEnd - xStart) || 1);
     let index = 0;
-    var isLegend = false;
+    let isLegend = false;
     let pos = {
       x: e.localX,
       y: e.localY
@@ -24,7 +27,7 @@ class DrawBar extends Chart {
     if (isLegend || this.drawing) return;
     // 鼠标位置在图表中时
     if (pos.y > this.cPaddingT && pos.y < this.H - this.cPaddingB && pos.x > this.cPaddingL && pos.x < this.W - this.cPaddingR) {
-      for (var i = 0; i < (xEnd - xStart); i++) {
+      for (let i = 0; i < (xEnd - xStart); i++) {
         if (pos.x > i * xs + this.cPaddingL) {
           index = i;
         }
@@ -34,7 +37,7 @@ class DrawBar extends Chart {
       this.clearGrid(index, xs);
       // 获取处于当前位置的信息
       const arr = [];
-      for (var j = 0, item, l = this.animateArr.length; j < l; j++) {
+      for (let j = 0, item, l = this.animateArr.length; j < l; j++) {
         item = this.animateArr[j];
         if (item.hide) continue;
         arr.push({ name: item.name, num: item.data[index].num });
@@ -54,7 +57,7 @@ class DrawBar extends Chart {
   clearGrid(index?, xs?) {
     if (this.activeIndex === index) return;
     this.activeIndex = index || null;
-    var that = this,
+    let that = this,
       ctx = this.ctx;
     let nameH = 0;
     if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
@@ -83,12 +86,12 @@ class DrawBar extends Chart {
       ctx.lineTo(x, 0);
       ctx.stroke();
     }
-    for (var i = 0, item, il = that.animateArr.length; i < il; i++) {
+    for (let i = 0, item, il = that.animateArr.length; i < il; i++) {
       item = that.animateArr[i];
       if (item.hide) continue;
       const { color, label, barW, borderRadius } = item;
       const { show: labelShow = commonLabel.show } = label
-      for (var j = 0, obj, jl = item.data.length; j < jl; j++) {
+      for (let j = 0, obj, jl = item.data.length; j < jl; j++) {
         obj = item.data[j];
         if (index === j) {
           that.setCtxStyle({
@@ -103,9 +106,9 @@ class DrawBar extends Chart {
             globalAlpha: 1
           });
         }
-        const y =  -obj.h + (borderRadius ? barW / 2 : 0) * (obj.num > 0 ? 1 : -1)
+        const y = obj.num ? -obj.h + (borderRadius ? barW / 2 : 0) * (obj.num > 0 ? 1 : -1) : 0
         ctx.beginPath();
-        ctx.moveTo(obj.x, obj.zeroScaleY);
+        ctx.moveTo(obj.x, obj.num ? obj.zeroScaleY : 0);
         ctx.lineTo(obj.x, y);
         ctx.stroke()
         if (borderRadius) {
@@ -126,105 +129,77 @@ class DrawBar extends Chart {
     ctx.restore()
   }
   animate() {
-    var that = this,
-      ctx = this.ctx,
-      obj, h = 0,
-      isStop = true;
-    function run() {
-      isStop = true;
-      ctx.save()
-      ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
-      for (var i = 0, item; i < that.animateArr.length; i++) {
-        item = that.animateArr[i];
-        if (item.hide) continue;
-        const { color, barW, stack, borderRadius } = item
-        that.setCtxStyle({
-          strokeStyle: color,
-          lineWidth: barW
-        })
-        item.isStop = true;
-        // const { show: labelShow, color: labelColor, fontWeight, fontFamily, fontSize, position, formatter, distanceToLabelLine } = label
-        for (var j = 0, jl = item.data.length; j < jl; j++) {
-          obj = item.data[j];
-          let s = 0
-          if (obj.num > 0) {
-            s = obj.h + obj.zeroScaleY - (borderRadius ? barW / 2 : 0)
-            h = obj.y + 4;
-            if (h >= s) {
-              obj.y = s;
-              obj.p = obj.h;
-            }
-          } else {
-            s = -(obj.h + obj.zeroScaleY + (borderRadius ? barW / 2 : 0))
-            h = obj.y - 4
-            if (h < -s) {
-              obj.y = -s;
-              obj.p = obj.h;
-            }
-          }
-          if (obj.p != obj.h) {
-            obj.y = h
-            item.isStop = false;
-          }
-          ctx.beginPath();
-          const y = -obj.y + obj.zeroScaleY
-          if (obj.y < s) {
-            ctx.moveTo(obj.x, obj.zeroScaleY);
-            ctx.lineTo(obj.x, y);
-            ctx.stroke();
-            const flag = obj.num > 0 ? obj.y > (barW / 2) : obj.y < -(barW / 2)
-            if (flag && borderRadius) {
-              that.createRadius(ctx, color, obj.x, y, barW / 2, obj.num)
-            }
-          } else {
-            ctx.moveTo(obj.x, obj.zeroScaleY);
-            ctx.lineTo(obj.x, y);
-            ctx.stroke();
-            if (borderRadius) {
-              that.createRadius(ctx, color, obj.x, y, barW / 2, obj.num)
-            }
-          }
-        }
-        if (!item.isStop) { isStop = false; }
+    timer = setTimeout(() => {
+      this.animate()
+    }, 16);
+    if (transitionStart !== null) {
+      this.drawBars();
+      if (Date.now() - transitionStart >= transitionDuration) {
+        // 过渡完成，重置transitionStart
+        transitionStart = null;
+        previousData = deepCopy(this.animateArr);
       }
-      if (isStop) {
-        for (var i = 0, item; i < that.animateArr.length; i++) {
-          item = that.animateArr[i];
-          if (item.hide) continue;
-          const { label } = item
-          let { show: labelShow = commonLabel.show } = label
-          if (labelShow) {
-            for (var j = 0, jl = item.data.length; j < jl; j++) {
-              that.drawLabel(item, j)
-            }
-          }
-        }
-        that.drawing = false
-        ctx.restore()
-        return
-      }
-      ctx.restore()
-      timer = setTimeout(() => {
-        run()
-      }, 16)
     }
-    run()
+  }
+  drawBars () {
+    const that = this;
+    const ctx =this.ctx;
+    let nameH = 0
+    if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
+      nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
+    }
+    const ydis = this.H - this.cPaddingB - this.cPaddingT - nameH
+    const elapsed = Date.now() - transitionStart;
+    const progress = Math.min(elapsed / transitionDuration, 1); // 进度，范围[0,1]
+    this.ctx.clearRect(0, 0, this.W, this.H);
+    // ctx.save()
+    // ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
+    // 画坐标系
+    this.drawAxis();
+    // 画标签
+    this.drawLegend(this.series);
+    // 画y轴刻度
+    this.drawY();
+    ctx.save()
+    ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
+    for (let i = 0, item, oldItem; i < this.animateArr.length; i++) {
+      item = that.animateArr[i];
+      oldItem = previousData[i];
+      if (item.hide) continue;
+      const { color, barW, stack, borderRadius } = item
+      item.data.forEach((obj, index) => {
+        this.setCtxStyle({
+          fillStyle: color
+        })
+        let oldValue = this.renderType !== 'init' && oldItem.data[index] ? oldItem.data[index].h || 0 : 0;
+        oldValue = oldValue ? -(oldValue + obj.zeroScaleY) : 0
+        let y = obj.zeroScaleY;
+        let h = obj.h && obj.num ? -(obj.h + obj.zeroScaleY) : 0;
+        const currentValue = lerp(oldValue, h, progress);
+        const x = obj.x - barW / 2;
+        h = currentValue
+        drawRoundedRect(ctx, x, y, barW, h, borderRadius ? [barW / 2, barW / 2, 0, 0] : [])
+        this.drawLabel(item, index)
+      });
+    }
+    ctx.restore()
   }
   create() {
     if (timer) {
       clearTimeout(timer)
       timer = null
     }
-    // 画坐标系
-    this.drawAxis();
     // 组织数据
     this.initData();
-    // 画标签
-    this.drawLegend(this.series);
-    // 画y轴刻度
-    this.drawY();
-    // 执行动画
-    this.animate();
+    transitionStart = Date.now();
+    if (this.renderType === 'init') {
+      previousData = deepCopy(this.animateArr);
+      // 执行动画
+      this.animate();
+    } else {
+      // 更新动画
+      this.animate();
+    }
   }
 
   // 实现圆角的柱子
@@ -237,6 +212,7 @@ class DrawBar extends Chart {
     ctx.arc(x, y, r, 0, 180 * Math.PI / 180, num > 0)
     ctx.fill();
   }
+
   initData () {
     let that = this
     const { xl, xStart, xEnd } = this.getXdataLength()
@@ -365,14 +341,14 @@ class DrawBar extends Chart {
         stack,
         data: []
       })
-
       item.data.slice(xStart, xEnd).forEach((d, j) => {
         let zeroScaleY = that.zeroScaleY
-        let oldH = Math.floor((d - min) / (max - min) * ydis)
-        let h = Math.floor((d - min) / (max - min) * ydis)
+        let oldH = d === 0 ? 0 : Math.floor((d - min) / (max - min) * ydis)
+        let h = d === 0 ? 0 : Math.floor((d - min) / (max - min) * ydis)
         let x = (xs * j + startX) + (index === 0 ? 0 : pItem.bgW) + w / 2
         // 判断是否是堆积图，如果是合计的堆积图，则每个柱子的起点也是累计的
         if (stack && i !== 0) {
+          let zeroScaleT = that.zeroScaleY
           this.animateArr.forEach(amItem => {
             // 找到上一条对应的数据
             const dataItem = amItem.data[j]
@@ -380,8 +356,9 @@ class DrawBar extends Chart {
               x = dataItem.x
             }
             if (((dataItem.num >= 0 && d >= 0) || (dataItem.num <= 0 && d <= 0)) && stack === amItem.stack) {
-              zeroScaleY = -dataItem.h
-              h = Math.abs(zeroScaleY) + oldH - Math.abs(that.zeroScaleY)
+              zeroScaleT = -dataItem.h
+              zeroScaleY += (dataItem.num ? -(dataItem.h + dataItem.zeroScaleY) : 0)
+              h = dataItem.num ? (Math.abs(zeroScaleT) + oldH - Math.abs(that.zeroScaleY)) : h
             }
           })
         }
@@ -397,6 +374,7 @@ class DrawBar extends Chart {
       this.animateArr.push(obj)
       if (!item.hide) { index++; }
     }
+    // console.log('renderType', this.renderType, JSON.stringify(this.series))
   }
 
   drawAxis () {
@@ -434,9 +412,9 @@ class DrawBar extends Chart {
     if (this.xAxis && (xl = data.length)) {
       let xInterval = 1
       const { color = '#999999', fontWeight = 'normal', fontSize = 22, fontFamily = 'sans-serif', overflow = 'none', margin = 5 } = axisLabel
+      // 先判断是否已经超出整条x轴线长度了
+      const { interval: axisLabelInterval = 'auto' } = axisLabel
       if (!zoomShow) {
-        // 先判断是否已经超出整条x轴线长度了
-        const { interval: axisLabelInterval = 'auto' } = axisLabel
         xInterval = axisLabelInterval === 'auto' ? 1 : (Math.max(axisLabelInterval, 1) + 1)
         if (axisLabelInterval === 'auto') {
           let maxTextWidth = 0
@@ -447,7 +425,7 @@ class DrawBar extends Chart {
             ctx.textBaseline = 'middle'
             obj = String(formatter ? formatter(obj) : obj)
             const txtW = this.ctx.measureText(obj).width; // 获取文字的长度
-            maxTextWidth += Math.min(txtW, xs)
+            maxTextWidth += txtW
           })
           if (maxTextWidth > xWidth * 0.8) {
             xInterval = Math.round(maxTextWidth / (xWidth)) + 1
@@ -472,7 +450,7 @@ class DrawBar extends Chart {
         this.ctx.fillStyle = color
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        if (i % xInterval === 0) {
+        if (i % xInterval === 0 || axisLabelInterval === 0) {
           obj = String(formatter ? formatter(obj) : obj)
           // 这里后续可以支持设置文字与x轴的距离
           const textX = x - xs / 2
@@ -595,7 +573,7 @@ class DrawBar extends Chart {
   drawLabel (item, j) {
     const ctx = this.ctx
     const {stack, label} = item
-    let { color: labelColor = commonLabel.show, fontWeight = commonLabel.fontWeight, fontFamily = commonLabel.fontFamily, fontSize = commonLabel.fontSize, position = commonLabel.position, formatter, distanceToLabelLine = commonLabel.distanceToLabelLine } = label
+    let { color: labelColor = commonLabel.color, fontWeight = commonLabel.fontWeight, fontFamily = commonLabel.fontFamily, fontSize = commonLabel.fontSize, position = commonLabel.position, formatter, distanceToLabelLine = commonLabel.distanceToLabelLine } = label
     const obj = item.data[j];
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
     ctx.fillStyle = labelColor
@@ -611,7 +589,7 @@ class DrawBar extends Chart {
       position = 'center'
     }
     if (position === 'center') {
-      textY = obj.num > 0 ? (obj.zeroScaleY - (obj.h)) / 2 : (obj.zeroScaleY - (obj.h)) / 2
+      textY = obj.num == 0 ? obj.zeroScaleY : obj.num > 0 ? (obj.zeroScaleY - (obj.h)) / 2 : (obj.zeroScaleY - (obj.h)) / 2
     } else if (position === 'bottom') {
       textY = obj.num > 0 ? obj.zeroScaleY - distanceToLabelLine : obj.zeroScaleY + distanceToLabelLine
     }

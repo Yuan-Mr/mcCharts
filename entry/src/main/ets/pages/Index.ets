@@ -1,254 +1,205 @@
-import {McLineChart, McBarChart, McPieChart, McPointChart, Options} from '../components/index'
-interface InterfaceObj {
-  name: string
+import window from '@ohos.window';
+import router from '@ohos.router';
+import {
+  McLineChart,
+  McBarChart,
+  McPieChart,
+  McPointChart,
+  Options,
+  chartInterface,
+  McRadarChart
+} from 'meichuangtools'
+
+@Extend(Text)
+function fancy(tooltipInfo: chartInterface.InterfaceObj) {
+  .fontSize(tooltipInfo.textStyle.fontSize || 14)
+  .fontColor(tooltipInfo.textStyle.color || '#fff')
+  .fontWeight(tooltipInfo.textStyle.fontWeight || 'normal')
+  .fontFamily(tooltipInfo.textStyle.fontFamily || 'sans-serif')
 }
+
 @Entry
 @Component
 struct Index {
-  @State seriesOption: Options = new Options({
-    xAxis:{
-      data:['周一','周二','周三','周四','周五','周六','周日']
+  @State defOption: Options = new Options({
+    xAxis: {
+      data: ['周一周一周一周', '周二', '周三', '周四', '周五', '周六', '周日'],
+      // axisLabel: {
+      //   interval: 0
+      // },
+    },
+    yAxis: {
+      name: '温度'
     },
     series: [
       {
-        name:'最高气温',
-        color: '#ff2659f5',
-        lineStyle: {
-          color: '#ff2659f5',
-          width: 2,
-          type: 'solid'
-        },
-        label: {
-          show: true,
-          color: '#fffa6262',
-          fontWeight: '600',
-          fontFamily: 'sans-serif',
-          position: '',
-          fontSize: 30,
-          formatter: (params: InterfaceObj) => {
-            return params.name
-          },
-          distanceToLabelLine: 10
-        },
-        itemStyle: {
-          symbol: 'solidCircle',
-          symbolSize: 4,
-          symbolColor: '',
-          borderWidth: 0,
-          borderType: 'solid',
-          borderColor: ''
-        },
-        data:[11, 11, 50, 30, 12, 130, 10]
+        name: '最高气温',
+        data: [11, 11, 15, 13, 12, 13, 10]
       }
     ]
   })
+  // @State defOption: Options = new Options({
+  //   series:[
+  //     {
+  //       name:'最高气温',
+  //       data: [
+  //         {value:435, name:'直接访问'},
+  //         {value:310, name:'邮件营销'},
+  //         {value:234, name:'联盟广告'},
+  //         {value:135, name:'视频广告'},
+  //         {value:1548, name:'搜索引擎'}
+  //       ]
+  //     }
+  //   ]
+  // })
+
+  // @State defOption: Options = new Options({
+  //   xAxis:{
+  //     data:['周一', '周一']
+  //   },
+  //   yAxis:{
+  //     name:'温度'
+  //   },
+  //   series:[
+  //     {
+  //       name:'最高气温',
+  //       data:[30, 60],
+  //       stack: 'stack1',
+  //       barStyle: {
+  //         width: 20
+  //       }
+  //     },
+  //     {
+  //       name:'最高气温2',
+  //       data:[60, 10],
+  //       stack: 'stack1',
+  //       barStyle: {
+  //         width: 20
+  //       }
+  //     },
+  //     {
+  //       name:'最高气温3',
+  //       data:[60, 10],
+  //       stack: 'stack2',
+  //       barStyle: {
+  //         width: 20
+  //       }
+  //     },
+  //     {
+  //       name:'最高气温3',
+  //       data:[60, 10],
+  //       stack: 'stack2',
+  //       barStyle: {
+  //         width: 20
+  //       }
+  //     },
+  //     {
+  //       name:'最高气温3',
+  //       data:[60, 10],
+  //       stack: 'stack2',
+  //       barStyle: {
+  //         width: 20
+  //       }
+  //     }
+  //   ]
+  // })
+  @State defRadarOption: Options = new Options({
+    radar: {
+      indicator: [
+        { name: 'Sales' },
+        { name: 'Administration' },
+        { name: 'Information Technology' },
+        { name: 'Customer Support' },
+        { name: 'Development' },
+        { name: 'Marketing' }
+      ]
+    },
+    series: [
+      {
+        name: '最高气温',
+        // areaStyle: {
+        //   color: {
+        //     direction: [0, 1, 0, 0],
+        //     colors: [
+        //       {
+        //         offset: 0,
+        //         color: 'red'
+        //       },
+        //       {
+        //         offset: 1,
+        //         color: '#ff265fe5'
+        //       }
+        //     ]
+        //   }
+        // },
+        data: [110, 120, 15, 13, 12, 10, 10]
+      },
+      {
+        name: '最高气温2',
+        // areaStyle: {
+        //   color: {
+        //     direction: [0, 1, 0, 0],
+        //     colors: [
+        //       {
+        //         offset: 0,
+        //         color: 'red'
+        //       },
+        //       {
+        //         offset: 1,
+        //         color: '#ff265fe5'
+        //       }
+        //     ]
+        //   }
+        // },
+        data: [10, 120, 105, 130, 12, 10, 10]
+      },
+    ]
+  })
+
+  @Builder
+  customTooltip($$: chartInterface.InterfaceObj) {
+    if ($$.tooltipInfo.title) {
+      Text($$.tooltipInfo.title)
+        .fancy($$.tooltipInfo)
+        .margin({
+          bottom: 8
+        })
+    }
+    ForEach($$.tooltipInfo.data, (item: chartInterface.InterfaceObj, index) => {
+      Text(item.name + '：' + item.num)
+        .fancy($$.tooltipInfo)
+    })
+  };
+
   aboutToAppear() {
-    setTimeout(() => {
-      this.seriesOption.setVal({
-        series: [
-          {
-            name:'最高气温',
-            color: '#ff2659f5',
-            lineStyle: {
-              color: '#ff2659f5',
-              width: 2,
-              type: 'solid'
-            },
-            label: {
-              show: true,
-              color: '#fffa6262',
-              fontWeight: '600',
-              fontFamily: 'sans-serif',
-              position: '',
-              fontSize: 30,
-              formatter: (params: InterfaceObj) => {
-                return params.name
-              },
-              distanceToLabelLine: 10
-            },
-            itemStyle: {
-              symbol: 'solidCircle',
-              symbolSize: 4,
-              symbolColor: '',
-              borderWidth: 0,
-              borderType: 'solid',
-              borderColor: ''
-            },
-            data:[110, 101, 500, 300, 102, 1030, 100]
-          }
-        ]
-      })
-    }, 2000)
   }
+
   build() {
     Column() {
-      // // 折线图-x轴属性
+      // 折线图
       // McLineChart({
-      //   options: {
-      //     xAxis:{
-      //       axisLine: { // 轴线样式
-      //         show: true, // 是否显示
-      //         lineStyle: {
-      //           color: '#ccc',
-      //           width: 2
-      //         }
-      //       },
-      //       axisTick: { // 刻度线配置
-      //         show: false, // 是否显示
-      //         interval: 6, // 与文本的间隔
-      //         length: 4, // 刻度的长度
-      //         lineStyle: {
-      //           color: '#ccc', // 刻度线颜色
-      //           width: 2 // 刻度线宽度
-      //         }
-      //       },
-      //       axisLabel: {
-      //         color: '#bf19ff',
-      //         fontWeight: '600',
-      //         fontFamily: 'sans-serif',
-      //         fontSize: 24,
-      //       },
-      //       formatter: function (name) {
-      //         return '周六'
-      //       },
-      //       data:['周一','周二','周三','周四','周五','周六','周日']
-      //     },
-      //     series:[
-      //       {
-      //         name:'最高气温',
-      //         data:[11, 11, 50, 30, 12, 130, 10]
-      //       }
-      //     ]
-      //   }
+      //   options: this.defOption
+      // })
+      // 饼图
+      // McPieChart({
+      //   options: this.defOption
+      //   // click: function (event, params) {
+      //   //   console.log('11', event, params)
+      //   // },
+      //   // tooltipClick: function (event, params) {
+      //   //   console.log('222', event, params)
+      //   // }
       // })
 
-      // // 折线图-y轴属性
-      // McLineChart({
-      //   options: {
-      //     xAxis:{
-      //       data:['周一','周二','周三','周四','周五','周六','周日']
-      //     },
-      //     yAxis: {
-      //       name: '单位/摄氏度', // 坐标名称
-      //       nameTextStyle: {
-      //         color: '#ccc',
-      //         fontWeight: 'normal',
-      //         fontFamily: 'sans-serif',
-      //         fontSize: 18,
-      //       },
-      //       axisLine: { // 轴线样式
-      //         show: true, // 是否显示
-      //         lineStyle: {
-      //           color: '#ccc',
-      //           width: 2
-      //         }
-      //       },
-      //       axisTick: { // 刻度线配置
-      //         show: true, // 是否显示
-      //         interval: 4, // 与文本的间隔
-      //         length: 5, // 刻度的长度
-      //         lineStyle: {
-      //           color: '#ccc', // 刻度线颜色
-      //           width: 2 // 刻度线宽度
-      //         }
-      //       },
-      //       splitLine: { // 坐标轴中的分隔线。
-      //         show: true,
-      //         lineStyle: {
-      //           color: '#4f000000',
-      //           width: 2
-      //         }
-      //       },
-      //       axisLabel: {  // x轴文本标签样式
-      //         color: '#bf19ff',
-      //         fontWeight: '600',
-      //         fontFamily: 'sans-serif',
-      //         fontSize: 20,
-      //       },
-      //       formatter: function (name) { // 自定义文本标签
-      //         return name + '°C'
-      //       },
-      //     },
-      //     series:[
-      //       {
-      //         name:'最高气温',
-      //         data:[11, 11, 50, 30, 12, 130, 10]
-      //       }
-      //     ]
-      //   }
+      // McBarChart({
+      //   options: this.defOption
       // })
 
-      // // 折线图-legend属性
-      // McLineChart({
-      //   options: {
-      //     xAxis:{
-      //       data:['周一','周二','周三','周四','周五','周六','周日']
-      //     },
-      //     legend: {
-      //       show: true,
-      //       left: '50%',
-      //       top: '2%',
-      //       itemGap: 10, // 图例每项之间的间隔。横向布局时为水平间隔，纵向布局时为纵向间隔。
-      //       itemTextGap: 10, // 图例图例之间的间隔。
-      //       itemWidth: 8, // 图例标记的图形宽度。
-      //       itemHeight: 8, // 图例标记的图形高度。
-      //       textStyle: {
-      //         color: '#000',
-      //         fontWeight: 'normal',
-      //         fontFamily: 'sans-serif',
-      //         fontSize: 24
-      //       }
-      //     },
-      //     series:[
-      //       {
-      //         name:'最高气温',
-      //         data:[11, 11, 50, 30, 12, 130, 10]
-      //       }
-      //     ]
-      //   }
-      // })
-
-      // // 折线图-tooltip属性
-      // McLineChart({
-      //   options: {
-      //     tooltip: {
-      //       show: true,
-      //       type: 'default', // 渲染类型。可选值：default（默认）、custom（自定义）
-      //       axisPointer: {
-      //         type: 'line',
-      //         lineStyle: {
-      //           color: '#000',
-      //           width: 2,
-      //           type: 'solid'
-      //         }
-      //       },
-      //       backgroundColor: '#97cccccc',
-      //       borderColor: '#333',
-      //       borderWidth: 1,
-      //       padding: 20,
-      //       textStyle: {
-      //         color: '#000',
-      //         fontWeight: 'normal',
-      //         fontFamily: 'sans-serif',
-      //         fontSize: 18
-      //       }
-      //     },
-      //     xAxis:{
-      //       data:['周一','周二','周三','周四','周五','周六','周日']
-      //     },
-      //     series:[
-      //       {
-      //         name:'最高气温',
-      //         data:[11, 11, 50, 30, 12, 130, 10]
-      //       }
-      //     ]
-      //   }
-      // })
-
-      // 折线图-series属性
-      McLineChart({
-        options: this.seriesOption
+      // 雷达图
+      McRadarChart({
+        options: this.defRadarOption
       })
+
     }
     .height('50%')
   }
