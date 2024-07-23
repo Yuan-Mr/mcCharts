@@ -3,6 +3,7 @@ import router from '@ohos.router';
 import {
   McLineChart,
   McBarChart,
+  McHorBarChart,
   McPieChart,
   McPointChart,
   Options,
@@ -23,19 +24,26 @@ function fancy(tooltipInfo: chartInterface.InterfaceObj) {
 struct Index {
   @State defOption: Options = new Options({
     xAxis: {
-      data: ['周一周一周一周', '周二', '周三', '周四', '周五', '周六', '周日'],
+      type: 'value',
+      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
       // axisLabel: {
       //   interval: 0
       // },
     },
     yAxis: {
+      type: 'category',
       name: '温度'
     },
     series: [
       {
         name: '最高气温',
-        data: [11, 11, 15, 13, 12, 13, 10]
-      }
+        barStyle: {
+            width: 20,
+            borderRadius:10,
+
+        },
+        data: [11,13,15]
+      },
     ]
   })
   // @State defOption: Options = new Options({
@@ -176,10 +184,10 @@ struct Index {
 
   build() {
     Column() {
-      // 折线图
-      // McLineChart({
-      //   options: this.defOption
-      // })
+      // 折线图 McBarChart McHorBarChart
+      McHorBarChart({
+        options: this.defOption
+      })
       // 饼图
       // McPieChart({
       //   options: this.defOption
@@ -195,10 +203,10 @@ struct Index {
       //   options: this.defOption
       // })
 
-      // 雷达图
-      McRadarChart({
-        options: this.defRadarOption
-      })
+      // // 雷达图
+      // McRadarChart({
+      //   options: this.defRadarOption
+      // })
 
     }
     .height('50%')

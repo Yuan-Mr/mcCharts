@@ -1,0 +1,6 @@
+{
+  "entry\\src\\main\\ets\\entryability\\EntryAbility.ts": [
+    "ohos.app.ability.UIAbility",
+    "ohos.hilog"
+  ]
+}
