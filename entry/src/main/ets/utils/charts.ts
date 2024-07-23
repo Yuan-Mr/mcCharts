@@ -278,6 +278,7 @@ export class Chart {
     }
   }
 
+
   adjustVisibleRange(xStart, xEnd, dataLength, scale) {
     // 根据缩放比例更新 xStart 和 xEnd
     const mid = Math.floor((xStart + xEnd) / 2);
