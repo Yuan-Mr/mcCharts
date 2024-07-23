@@ -1,0 +1,57 @@
+{
+	"app": {
+		"bundleName": "com.example.mccharts",
+		"vendor": "example",
+		"versionCode": 1000000,
+		"versionName": "1.0.0",
+		"icon": "$media:app_icon",
+		"label": "$string:app_name",
+		"apiReleaseType": "Beta1",
+		"compileSdkVersion": "5.0.0.25",
+		"targetAPIVersion": 50000012,
+		"minAPIVersion": 40100011,
+		"compileSdkType": "HarmonyOS",
+		"appEnvironments": [],
+		"bundleType": "app",
+		"debug": true
+	},
+	"module": {
+		"name": "entry",
+		"type": "entry",
+		"description": "$string:module_desc",
+		"mainElement": "EntryAbility",
+		"deviceTypes": [
+			"phone",
+			"tablet"
+		],
+		"deliveryWithInstall": true,
+		"installationFree": false,
+		"pages": "$profile:main_pages",
+		"abilities": [
+			{
+				"name": "EntryAbility",
+				"srcEntry": "./ets/entryability/EntryAbility.ts",
+				"description": "$string:EntryAbility_desc",
+				"icon": "$media:icon",
+				"label": "$string:EntryAbility_label",
+				"startWindowIcon": "$media:icon",
+				"startWindowBackground": "$color:start_window_background",
+				"exported": true,
+				"skills": [
+					{
+						"entities": [
+							"entity.system.home"
+						],
+						"actions": [
+							"action.system.home"
+						]
+					}
+				]
+			}
+		],
+		"packageName": "entry",
+		"virtualMachine": "ark11.0.2.0",
+		"compileMode": "esmodule",
+		"dependencies": []
+	}
+}
