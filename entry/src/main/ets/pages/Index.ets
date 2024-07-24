@@ -42,8 +42,18 @@ struct Index {
             borderRadius:10,
 
         },
-        data: [11,13,15]
+        data: [130,11]
       },
+      {
+        name: '最低气温',
+        barStyle: {
+          width: 20,
+          borderRadius:10,
+
+        },
+        data: [8,9]
+      },
+
     ]
   })
   // @State defOption: Options = new Options({

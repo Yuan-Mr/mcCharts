@@ -1,5 +1,5 @@
 import { Chart } from './charts'
-import { calculateNum, lerp, drawTexts, drawBreakText, maxMinSumSeparatedBySign, deepCopy, drawRoundedRect } from './index'
+import { calculateNum, lerp, drawTexts, drawBreakText, maxMinSumSeparatedBySign, deepCopy, drawHorRoundedRect ,drawRoundedRect} from './index'
 import { axisLineStyle, yLineStyle, barStyle as commonBarStyle, label as commonLabel } from './defaultOption'
 import { InterfaceObj } from './chartInterface';
 let timer = null
@@ -114,12 +114,13 @@ class DrawHorBar extends Chart {
           });
         }
         const y = obj.num ? -obj.h + (borderRadius ? barW / 2 : 0) * (obj.num > 0 ? 1 : -1) : 0
+
+       console.log('yyy',y)
         ctx.beginPath();
         //修改柱状图
         ctx.moveTo(-y, -obj.x);
-        ctx.lineTo(0, -obj.x);
+        ctx.lineTo(obj.num ? -obj.zeroScaleY : 0, -obj.x);
         ctx.stroke()
-        // return
         if (borderRadius) {
           ctx.beginPath()
           let globalAlpha = 1
@@ -185,10 +186,16 @@ class DrawHorBar extends Chart {
         let y = obj.zeroScaleY;
         let h = obj.h && obj.num ? -(obj.h + obj.zeroScaleY) : 0;
         const currentValue = lerp(oldValue, h, progress);
-        const x = obj.x - barW / 2;
+        const x = obj.x + barW / 2;
         h = currentValue
         // 调整 x y和 barW h顺序  并且 把 宽度和高度设置为负值
-        drawRoundedRect(ctx, y, -x, -h,-barW, borderRadius ? [0, barW / 2, barW / 2, 0] : [])
+        if(h<0){
+          //正数
+          drawHorRoundedRect(ctx, -y, -x, -h, barW, borderRadius ? [0, barW / 2, barW / 2, 0] : [])
+        }else{
+          //负数
+          drawHorRoundedRect(ctx, -y, -x, -h, barW, borderRadius ? [barW / 2, 0, 0, barW / 2] : [])
+        }
         this.drawLabel(item, index)
       });
     }
@@ -355,6 +362,7 @@ class DrawHorBar extends Chart {
         let zeroScaleY = that.zeroScaleY
         let oldH = d === 0 ? 0 : Math.floor((d - min) / (max - min) * ydis)
         let h = d === 0 ? 0 : Math.floor((d - min) / (max - min) * ydis)
+
         let x = (ys * j + startX) + (index === 0 ? 0 : pItem.bgW) + w / 2
         // 判断是否是堆积图，如果是合计的堆积图，则每个柱子的起点也是累计的
         if (stack && i !== 0) {
@@ -365,6 +373,7 @@ class DrawHorBar extends Chart {
             if (stack === amItem.stack) {
               x = dataItem.x
             }
+
             if (((dataItem.num >= 0 && d >= 0) || (dataItem.num <= 0 && d <= 0)) && stack === amItem.stack) {
               zeroScaleT = -dataItem.h
               zeroScaleY += (dataItem.num ? -(dataItem.h + dataItem.zeroScaleY) : 0)
@@ -490,7 +499,7 @@ class DrawHorBar extends Chart {
     if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
       nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
     }
-    let ydis = this.H - this.cPaddingB - this.cPaddingT - nameH
+    let ydis = this.W - this.cPaddingL - this.cPaddingR - nameH
     let yl = this.info.num
     let ys = ydis / yl
     for (let i = 0; i <= yl; i++) {
@@ -599,7 +608,7 @@ class DrawHorBar extends Chart {
     const textWidth = ctx.measureText(text).width / 2; // 获取文字的长度
     const textHeight = ctx.measureText(text).height / 2; // 获取文字的长度
     let textX = obj.x
-    let textY = obj.num >= 0 ? -obj.h - textHeight - distanceToLabelLine : -obj.h + textHeight + distanceToLabelLine
+    let textY = obj.num >= 0 ? -obj.h - textWidth - distanceToLabelLine : -obj.h + textWidth*2 + distanceToLabelLine
     if (stack && !position) {
       position = 'center'
     }
