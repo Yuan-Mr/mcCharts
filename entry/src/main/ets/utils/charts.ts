@@ -3,7 +3,7 @@ import { deepCopy } from './index'
 import { seriesOpt, xAxisOpt, yAxisOpt, tooltip, legend, legendTextStyle, dataZoom, radar } from './defaultOption'
 import { percentageConversion, roundRect } from './index'
 let zoomAccumulator = 0; // 缩放累积量
-const zoomStep = 0.08; // 每次滚动累积的步数，根据需要调整
+const zoomStep = 0.06; // 每次滚动累积的步数，根据需要调整
 /**
  * 图表基类
  */
@@ -18,7 +18,7 @@ export class Chart {
   cPaddingT: number = 30;
   cPaddingB: number = 30;
   cPaddingL: number = 30;
-  cPaddingR: number = 30;
+  cPaddingR: number = 20;
   xs: number = 0; // x轴间隔
   stepNum: number = 0; // 滚动距离
   activeIndex: number | null = null;
@@ -33,6 +33,7 @@ export class Chart {
   xAxis: AxisInterface = deepCopy(xAxisOpt);
   yAxis: AxisInterface | AxisInterface[] = deepCopy(yAxisOpt);
   animateArr: Array<InterfaceObj> = [];
+  previousData: Array<InterfaceObj> = []; // 存储历史数据
   info: any = {};
   drawing: boolean = false;
   seriesOpt = deepCopy(seriesOpt);
@@ -49,6 +50,7 @@ export class Chart {
     this.ctx = ctx
     this.W = ctx.width
     this.H = ctx.height
+    this.previousData = deepCopy(this.animateArr)
     this.animateArr = []
     this.offContext = offContext
     if (offCanvas) {
@@ -161,9 +163,11 @@ export class Chart {
       return;
     }
     const newEnd = Math.min(start + num, xl)
-    this.dataZoom.start = newEnd >= xl ? newEnd - num : start
-    this.dataZoom.end = newEnd
+    const newStart = newEnd >= xl ? newEnd - num : start
+    this.dataZoom.start = (newEnd === xl && newEnd - newStart < 2) ? (newStart - 1) : newStart
+    this.dataZoom.end = (newEnd - this.dataZoom.start < 2) ? (newEnd + 1) : newEnd
     ctx.clearRect(0, 0, this.W, this.H);
+    this.previousData = deepCopy(this.animateArr)
     this.animateArr = []
     this.renderType = 'update'
     this.create()
@@ -194,11 +198,18 @@ export class Chart {
         newXEnd = Math.min(xl, newXStart + 1);
       }
       if (newXStart === xStart && newXEnd === xEnd) return;
+      if (newXEnd === xl && newXEnd - newXStart < 2) {
+        newXStart -= 1
+      } else if (newXEnd - newXStart < 2) {
+        newXEnd += 1
+      }
       this.dataZoom.start = newXStart
       this.dataZoom.end = newXEnd
       this.dataZoom.num = newXEnd - newXStart
       ctx.clearRect(0, 0, this.W, this.H);
+      this.previousData = deepCopy(this.animateArr)
       this.animateArr = []
+      this.renderType = 'update'
       this.create()
       zoomAccumulator = 0; // 重置累积量
     }
@@ -277,7 +288,6 @@ export class Chart {
       zoomShow
     }
   }
-
 
   adjustVisibleRange(xStart, xEnd, dataLength, scale) {
     // 根据缩放比例更新 xStart 和 xEnd

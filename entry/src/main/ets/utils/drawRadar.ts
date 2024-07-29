@@ -21,6 +21,9 @@ class DrawRadar extends Chart {
   }
 
   create() {
+    this.ctx.translate(0, 0);
+    this.ctx.save();
+    this.ctx.clearRect(0, 0, this.W, this.H);
     // 组织数据
     this.initData()
     // 绘制标签
@@ -66,12 +69,9 @@ class DrawRadar extends Chart {
       // that.clearGrid();
     }
     if (activeIndex !== null) {
-      //
-      // ctx.reset();
-      ctx.rotate(radarStartAngle * 2 * Math.PI / 360);
-      // ctx.translate(1, -1);
-      ctx.translate(-this.W/2, -this.H/2);
-      ctx.clearRect(0, 0, this.W, this.H);
+      this.ctx.translate(0, 0);
+      this.ctx.save();
+      this.ctx.clearRect(0, 0, this.W, this.H);
       //
       // 绘制标签
       this.drawText()

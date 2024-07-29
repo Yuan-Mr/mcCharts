@@ -52,7 +52,7 @@ class DrawPie extends Chart {
     };
     const [centerX, centerY] = that.setCenter(true)
     let [radius, innerRadius] = that.getRadius()
-    if (isLegend || this.drawing) return;
+    if (isLegend || this.drawing || !this.animateArr.length) return;
     for (let i = 0, l = this.animateArr.length; i < l; i++) {
       const item = this.animateArr[i];
       if (item.hide) continue;

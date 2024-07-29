@@ -80,7 +80,7 @@ export struct Chart {
         .gesture(
           PanGesture(this.panOption)
             .onActionStart((event: GestureEvent) => {
-              console.info('Pan start')
+              // console.info('Pan start')
             })
             .onActionUpdate((event: GestureEvent) => {
               if (event && !this.isScale) {

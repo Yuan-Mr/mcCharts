@@ -348,8 +348,8 @@ export function drawRoundedRect(ctx, x, y, w, h, r) {
   // 确保半径不会大于宽度或高度的一半
   // r = Math.min(r, Math.abs(w / 2), Math.abs(h / 2));
   const [topLeft = 0, topRight = 0, bottomRight = 0, bottomLeft = 0] = r.map(r => Math.min(r, Math.abs(w / 2), Math.abs(h / 2)));
-  if (h < 0) {
 
+  if (h < 0) {
     // 负高度的情况
     y += h; // 调整y坐标，使图形从正确的起点开始绘制
     h = -h; // 取绝对值，以便接下来的绘制代码可以正常工作
@@ -389,6 +389,7 @@ export function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.closePath();
   ctx.fill();
 }
+
 // 绘制横向柱状图
 export function drawHorRoundedRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -433,7 +434,20 @@ export function drawHorRoundedRect(ctx, x, y, w, h, r) {
   ctx.fill();
 }
 
-
 export function lerp (start, end, t) { // 线性插值
   return start * (1 - t) + end * t;
+}
+
+
+export function requestAnimationFramePolyfill(callback) {
+  let lastTime = 0;
+  return setTimeout(function animate(time) {
+    // time 为当前时间戳
+    lastTime = lastTime || time;
+    let delta = time - lastTime;
+    lastTime = time;
+
+    callback(delta); // 传递时间差给回调函数
+    requestAnimationFramePolyfill(animate); // 递归调用自身
+  }, 1000 / 60); // 模拟60fps
 }

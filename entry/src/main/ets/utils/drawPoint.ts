@@ -29,7 +29,7 @@ class DrawPoint extends Chart {
       for (let j = 0, jl = item.data.length; j < jl; j++) {
         obj = item.data[j];
         const flag = pointInsideCircle([pos.x, pos.y], [obj.x + this.cPaddingL, that.H - obj.y - that.cPaddingT], obj.r)
-        console.log('11', pos.x, pos.y, obj.x + this.cPaddingL, that.H - obj.y - that.cPaddingT, obj.r, flag)
+        // console.log('11', pos.x, pos.y, obj.x + this.cPaddingL, that.H - obj.y - that.cPaddingT, obj.r, flag)
         if (flag) {
           activeI = i
           activeJ = j

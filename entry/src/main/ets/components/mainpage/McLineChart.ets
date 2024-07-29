@@ -15,10 +15,11 @@ export struct McLineChart {
   @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void = globalBuilder; // 自定义组件
   // @Watch 回调
   onCountUpdated(): void {
-    this.chartOption = new Options(this.options)
+    this.renderType = 'update'
+    this.chartOption = this.options
   }
   aboutToAppear() {
-    this.onCountUpdated()
+    this.chartOption = this.options
     drawMcLineChart = new DrawLine()
   }
   build() {

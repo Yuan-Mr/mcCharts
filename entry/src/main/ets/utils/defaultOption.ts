@@ -11,7 +11,7 @@ const barStyle: InterfaceObj = {
   width: 30,
   barGap: 3,
   barCategoryGap: 0,
-  borderRadius: false // 新增圆形
+  borderRadius: false // 圆形
 }
 
 const label: InterfaceObj = {
@@ -28,12 +28,12 @@ const itemStyle: InterfaceObj = {
   symbol: 'none',
   symbolSize: 3,
   symbolColor: '',
-  borderWidth: 0, // 新增
-  borderType: 'solid', // 新增
-  borderColor: '' // 新增
+  borderWidth: 0, // 
+  borderType: 'solid', // 
+  borderColor: '' // 
 }
 
-// 新增区域颜色
+// 区域颜色
 const areaStyle: InterfaceObj = {
   color: ''
 }
@@ -73,8 +73,8 @@ const seriesOpt: SeriesInterface = {
   itemStyle,
   stack: '', // 数据堆叠
   symbolSize: 0, // 散点图的标记大小
-  smooth: false, // 新增的圆滑曲线
-  padAngle: 0, // 新增的饼图间隔角度
+  smooth: false, // 圆滑曲线
+  padAngle: 0, // 饼图间隔角度
   data: []
 }
 
@@ -100,14 +100,15 @@ const axisOpt: AxisInterface = {
     fontFamily: 'sans-serif',
     fontSize: 22,
     interval: 'auto',
-    margin: 5, // 新增的刻度标签与轴线之间的距离。
-    overflow: 'none' // 新增的x轴的文本长度超出的处理， none（无）， truncate（截断），breakAll（换行）
+    margin: 5, // 刻度标签与轴线之间的距离。
+    overflow: 'none' // x轴的文本长度超出的处理， none（无）， truncate（截断），breakAll（换行）
   },
   formatter: null,
 }
 
 const xAxisOpt: AxisInterface = {
   ...axisOpt,
+  boundaryGap: true, // 新增两边留白机制
   data: []
 }
 
@@ -124,11 +125,11 @@ const yAxisOpt: AxisInterface = {
     fontFamily: 'sans-serif',
     fontSize: 22,
   },
-  nameGap: 5, // 新增坐标轴名称与轴线之间的距离。
+  nameGap: 5, // 坐标轴名称与轴线之间的距离。
   ...axisOpt,
   axisLabel: {
     ...axisOpt.axisLabel,
-    margin: 0, // 新增的刻度标签与轴线之间的距离。
+    margin: 0, // 刻度标签与轴线之间的距离。
   },
   splitLine: { // 坐标轴中的分隔线。
     show: true,
@@ -141,7 +142,7 @@ const yAxisOpt: AxisInterface = {
 const axisPointer = {
   type: 'line',
   lineStyle: yLineStyle,
-  shadowStyle: { // 新增提示背景
+  shadowStyle: { // 提示背景
     color: 'rgba(150,150,150,0.2)'
   }
 }
@@ -183,7 +184,7 @@ const legend: LegendInterface = {
   textStyle: legendTextStyle
 }
 
-// 缩放的默认数据，新增
+// 缩放的默认数据，
 const dataZoom: DataZoomInterface = {
   show: false,
   num: 7,
@@ -191,7 +192,7 @@ const dataZoom: DataZoomInterface = {
   end: 6
 }
 
-// 雷达图的配置信息, 新增
+// 雷达图的配置信息, 
 const radar: RadarInterface = {
   indicator: [], // 雷达图的指示器，用来指定雷达图中的多个变量（维度）
   center: ['50%', '50%'], // 雷达图的中心（圆心）坐标，数组的第一项是横坐标，第二项是纵坐标。
@@ -207,7 +208,7 @@ const radar: RadarInterface = {
     fontFamily: 'sans-serif',
     fontSize: 22,
     width: 30,
-    overflow: 'breakAll' // 新增的x轴的文本长度超出的处理， none（无）， truncate（截断），breakAll（换行）
+    overflow: 'breakAll' // x轴的文本长度超出的处理， none（无）， truncate（截断），breakAll（换行）
   },
   // 坐标轴轴线相关设置。
   axisLine: {

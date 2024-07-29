@@ -24,7 +24,7 @@ class DrawBar extends Chart {
       x: e.localX,
       y: e.localY
     };
-    if (isLegend || this.drawing) return;
+    if (isLegend || this.drawing || !this.animateArr.length) return;
     // 鼠标位置在图表中时
     if (pos.y > this.cPaddingT && pos.y < this.H - this.cPaddingB && pos.x > this.cPaddingL && pos.x < this.W - this.cPaddingR) {
       for (let i = 0; i < (xEnd - xStart); i++) {
@@ -95,32 +95,17 @@ class DrawBar extends Chart {
         obj = item.data[j];
         if (index === j) {
           that.setCtxStyle({
-            strokeStyle: color,
-            lineWidth: barW,
+            fillStyle: color,
             globalAlpha: 0.8
           });
         } else {
           that.setCtxStyle({
-            strokeStyle: color,
-            lineWidth: barW,
+            fillStyle: color,
             globalAlpha: 1
           });
         }
-        const y = obj.num ? -obj.h + (borderRadius ? barW / 2 : 0) * (obj.num > 0 ? 1 : -1) : 0
-        ctx.beginPath();
-        ctx.moveTo(obj.x, obj.num ? obj.zeroScaleY : 0);
-        ctx.lineTo(obj.x, y);
-        ctx.stroke()
-        if (borderRadius) {
-          ctx.beginPath()
-          let globalAlpha = 1
-          if (index === j) {
-            globalAlpha = 0.8
-          } else {
-            globalAlpha = 1
-          }
-          that.createRadius(ctx, color, obj.x, y, barW / 2, obj.num, globalAlpha)
-        }
+        let h = obj.h && obj.num ? -(obj.h + obj.zeroScaleY) : 0;
+        drawRoundedRect(ctx, obj.x - barW / 2, obj.zeroScaleY, barW, h, borderRadius ? [barW / 2, barW / 2, 0, 0] : [])
         if (labelShow) {
           that.drawLabel(item, j)
         }
@@ -134,7 +119,7 @@ class DrawBar extends Chart {
     }, 16);
     if (transitionStart !== null) {
       this.drawBars();
-      if (Date.now() - transitionStart >= transitionDuration) {
+      if (Date.now() - transitionStart > transitionDuration) {
         // 过渡完成，重置transitionStart
         transitionStart = null;
         previousData = deepCopy(this.animateArr);
@@ -164,13 +149,10 @@ class DrawBar extends Chart {
     ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
     for (let i = 0, item, oldItem; i < this.animateArr.length; i++) {
       item = that.animateArr[i];
-      oldItem = previousData[i];
+      oldItem = previousData[i] || {data: []};
       if (item.hide) continue;
       const { color, barW, stack, borderRadius } = item
       item.data.forEach((obj, index) => {
-        this.setCtxStyle({
-          fillStyle: color
-        })
         let oldValue = this.renderType !== 'init' && oldItem.data[index] ? oldItem.data[index].h || 0 : 0;
         oldValue = oldValue ? -(oldValue + obj.zeroScaleY) : 0
         let y = obj.zeroScaleY;
@@ -178,12 +160,16 @@ class DrawBar extends Chart {
         const currentValue = lerp(oldValue, h, progress);
         const x = obj.x - barW / 2;
         h = currentValue
-        drawRoundedRect(ctx, x, y, barW, h, borderRadius ? [barW / 2, barW / 2, 0, 0] : [])
         this.drawLabel(item, index)
+        this.setCtxStyle({
+          fillStyle: color
+        })
+        drawRoundedRect(ctx, x, y, barW, h, borderRadius ? [barW / 2, barW / 2, 0, 0] : [])
       });
     }
     ctx.restore()
   }
+
   create() {
     if (timer) {
       clearTimeout(timer)
@@ -218,6 +204,10 @@ class DrawBar extends Chart {
     const { xl, xStart, xEnd } = this.getXdataLength()
     let nameH = 0
     if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
+      const { nameTextStyle } = this.yAxis;
+      const { color = '#999', fontWeight = 'normal', fontSize = 22, fontFamily = 'sans-serif' } = nameTextStyle
+      this.ctx.fillStyle = color
+      this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
       nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
     }
     let xs = (this.W - this.cPaddingL - this.cPaddingR) / ((xEnd - xStart) || 1) // 每个数组的刻度间隔值

@@ -27,7 +27,7 @@ class DrawHorBar extends Chart {
       x: e.localX,
       y: e.localY
     };
-    if (isLegend || this.drawing) return;
+    if (isLegend || this.drawing || !this.animateArr.length) return;
     // 鼠标位置在图表中时
     if (pos.y > this.cPaddingT && pos.y < this.H - this.cPaddingB && pos.x > this.cPaddingL && pos.x < this.W - this.cPaddingR) {
       for (let i = 0; i < (xEnd - xStart); i++) {
@@ -49,7 +49,8 @@ class DrawHorBar extends Chart {
       // this.showInfo(pos, this.xAxis.data[index], arr);
       // console.log('callback', JSON.stringify(arr))
       callback(true, e, {
-        x: obj.x,
+        x: pos.x,
+        y: pos.y,
         W: this.W,
         H: this.H
       }, this.xAxis.data[index], arr, this.tooltip);
@@ -102,34 +103,39 @@ class DrawHorBar extends Chart {
         obj = item.data[j];
         if (index === j) {
           that.setCtxStyle({
-            strokeStyle: color,
-            lineWidth: barW,
+            fillStyle: color,
             globalAlpha: 0.8
           });
         } else {
           that.setCtxStyle({
-            strokeStyle: color,
-            lineWidth: barW,
+            fillStyle: color,
             globalAlpha: 1
           });
         }
-        const y = obj.num ? -obj.h + (borderRadius ? barW / 2 : 0) * (obj.num > 0 ? 1 : -1) : 0
-
-       console.log('yyy',y)
-        ctx.beginPath();
-        //修改柱状图
-        ctx.moveTo(-y, -obj.x);
-        ctx.lineTo(obj.num ? -obj.zeroScaleY : 0, -obj.x);
-        ctx.stroke()
-        if (borderRadius) {
-          ctx.beginPath()
-          let globalAlpha = 1
-          if (index === j) {
-            globalAlpha = 0.8
-          } else {
-            globalAlpha = 1
-          }
-          that.createRadius(ctx, color, obj.x, y, barW / 2, obj.num, globalAlpha)
+        const y = obj.zeroScaleY
+        const x = obj.x + barW / 2
+        // ctx.beginPath();
+        // //修改柱状图
+        // ctx.moveTo(-y, -obj.x);
+        // ctx.lineTo(obj.num ? -obj.zeroScaleY : 0, -obj.x);
+        // ctx.stroke()
+        // if (borderRadius) {
+        //   ctx.beginPath()
+        //   let globalAlpha = 1
+        //   if (index === j) {
+        //     globalAlpha = 0.8
+        //   } else {
+        //     globalAlpha = 1
+        //   }
+        //   that.createRadius(ctx, color, obj.x, y, barW / 2, obj.num, globalAlpha)
+        // }
+        let h = obj.h && obj.num ? -(obj.h + obj.zeroScaleY) : 0;
+        if(h < 0 ){
+          //正数
+          drawHorRoundedRect(ctx, -y, -x, -h, barW, borderRadius ? [0, barW / 2, barW / 2, 0] : [])
+        }else{
+          //负数
+          drawHorRoundedRect(ctx, -y, -x, -h, barW, borderRadius ? [barW / 2, 0, 0, barW / 2] : [])
         }
         if (labelShow) {
           that.drawLabel(item, j)
@@ -139,6 +145,7 @@ class DrawHorBar extends Chart {
     ctx.restore()
   }
   animate() {
+    this.drawing = true
     timer = setTimeout(() => {
       this.animate()
     }, 16);
@@ -147,8 +154,11 @@ class DrawHorBar extends Chart {
       if (Date.now() - transitionStart >= transitionDuration) {
         // 过渡完成，重置transitionStart
         transitionStart = null;
+        this.drawing = false
         previousData = deepCopy(this.animateArr);
       }
+    } else {
+      this.drawing = false
     }
   }
   drawBars () {
@@ -174,7 +184,7 @@ class DrawHorBar extends Chart {
     ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
     for (let i = 0, item, oldItem; i < this.animateArr.length; i++) {
       item = that.animateArr[i];
-      oldItem = previousData[i];
+      oldItem = previousData[i] || {data: []};
       if (item.hide) continue;
       const { color, barW, stack, borderRadius } = item
       item.data.forEach((obj, index) => {
@@ -233,10 +243,11 @@ class DrawHorBar extends Chart {
   initData () {
     let that = this
     const { xl, xStart, xEnd } = this.getXdataLength()
-    let nameH = 0
-    if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
-      nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
-    }
+    // let nameH = 0
+    // if (this.yAxis && !Array.isArray(this.yAxis)) {
+    //   const { nameGap = 5, name } = this.yAxis;
+    //   nameH = name ? this.ctx.measureText(name).height + nameGap : 0; // 获取文字的长度
+    // }
     let ys = (this.H - this.cPaddingB - this.cPaddingT) / ((xEnd - xStart) || 1) // 每个数组的刻度间隔值
     let ydis = this.W - this.cPaddingL - this.cPaddingR
     let index = 0
@@ -495,11 +506,7 @@ class DrawHorBar extends Chart {
   }
 
   getZeroScaleY () {
-    let nameH = 0
-    if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
-      nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
-    }
-    let ydis = this.W - this.cPaddingL - this.cPaddingR - nameH
+    let ydis = this.W - this.cPaddingL - this.cPaddingR
     let yl = this.info.num
     let ys = ydis / yl
     for (let i = 0; i <= yl; i++) {
@@ -517,15 +524,15 @@ class DrawHorBar extends Chart {
       const { show: splitLineShow = true } = splitLine || {}
       let ctx = this.ctx
       let nameH = 0
-      if (this.yAxis && this.yAxis.name) {
-        const { color = '#999', fontWeight = 'normal', fontSize = 22, fontFamily = 'sans-serif' } = nameTextStyle
-        this.ctx.fillStyle = color
-        this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-        nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
-        ctx.textBaseline = 'middle'
-        const nameW = this.ctx.measureText(this.yAxis.name).width; // 获取文字的长度
-        ctx.fillText(this.yAxis.name, this.cPaddingL - nameW / 2, this.cPaddingT - nameGap)
-      }
+      // if (this.yAxis && this.yAxis.name) {
+      //   const { color = '#999', fontWeight = 'normal', fontSize = 22, fontFamily = 'sans-serif' } = nameTextStyle
+      //   this.ctx.fillStyle = color
+      //   this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      //   nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
+      //   ctx.textBaseline = 'middle'
+      //   const nameW = this.ctx.measureText(this.yAxis.name).width; // 获取文字的长度
+      //   ctx.fillText(this.yAxis.name, this.cPaddingL - nameW / 2, this.cPaddingT - nameGap)
+      // }
 
       let xdis = this.W - this.cPaddingL - this.cPaddingR
       let ydis = this.H - this.cPaddingB - this.cPaddingT - nameH

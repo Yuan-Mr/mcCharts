@@ -1,12 +1,12 @@
 interface InterfaceObj {
-  [key: string]: any;
+  [key: string]: any,
 }
 
 // 图表数据的特征接口
 interface interface_data {
-  name: string | number;
-  value: string | number;
-  [key: string]: any;
+  name: string | number,
+  value: string | number,
+  [key: string]: any,
 }
 
 // 图表的特征接口
@@ -18,14 +18,16 @@ interface interface_option {
   color?: string,
   cSpace?: number | Array<Number>,
   data?: InterfaceObj[],
-  [key: string]: any;
+  [key: string]: any,
 }
 
 // 坐标轴的特征接口
 interface AxisInterface {
+  type?: string,
   name?: string,
   nameTextStyle?: InterfaceObj,
   nameGap?: number,
+  boundaryGap?: boolean,
   axisLine?: InterfaceObj,
   axisTick?: InterfaceObj,
   axisLabel?: InterfaceObj,
@@ -101,6 +103,22 @@ interface RadarInterface {
   splitArea?: InterfaceObj
 }
 
+interface OptionInterface {
+  cPaddingT?: number,
+  cPaddingB?: number,
+  cPaddingL?: number,
+  cPaddingR?: number,
+  color?: Array<string>,
+  title?: InterfaceObj,
+  legend?: LegendInterface,
+  dataZoom?: DataZoomInterface,
+  tooltip?: TooltipInterface,
+  radar?: RadarInterface,
+  xAxis?: AxisInterface,
+  yAxis?: AxisInterface | AxisInterface[],
+  series?: Array<SeriesInterface>
+}
+
 
 export {
   AxisInterface,
@@ -109,5 +127,6 @@ export {
   TooltipInterface,
   SeriesInterface,
   DataZoomInterface,
+  OptionInterface,
   RadarInterface
 }

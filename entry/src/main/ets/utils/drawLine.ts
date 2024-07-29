@@ -1,13 +1,18 @@
 import { Chart } from './charts'
-import { calculateNum, drawTexts, drawBreakText } from './index'
+import { calculateNum, drawTexts, drawBreakText, deepCopy, requestAnimationFramePolyfill } from './index'
 import { lineStyle as commonLineStyle, axisLineStyle, yLineStyle, label as commonLabel, itemStyle as commonItemStyle, areaStyle as commonAreaStyle } from './defaultOption'
-
-
+// 动画参数
+let startTime = null;
+let timer = null;
+let duration = 200; // 动画持续时间，单位毫秒
+let progress = 0; // 动画进度
 /**
  * 折线图
  */
 class DrawLine extends Chart {
-
+  zeroScaleY = 0
+  xs = 0
+  nameH = 0
   constructor () {
     super('line')
   }
@@ -22,7 +27,7 @@ class DrawLine extends Chart {
       x: e.localX,
       y: e.localY
     };
-    if (isLegend || this.drawing) return;
+    if (isLegend || this.drawing || !this.animateArr.length) return;
     // 鼠标位置在图表中时
     if (pos.y > this.cPaddingT && pos.y < this.H - this.cPaddingB && pos.x > this.cPaddingL && pos.x < this.W - this.cPaddingR) {
       // canvas.style.cursor = 'pointer';
@@ -76,10 +81,11 @@ class DrawLine extends Chart {
     if (typeof index === 'number') {
       const { axisPointer = {} } = that.tooltip
       const { type = 'line', lineStyle = {}, shadowStyle } = axisPointer
+      const { width = 1, color = '#DDE2EB'} = lineStyle
       ctx.beginPath()
       obj = that.animateArr[0].data[index]
-      ctx.lineWidth = lineStyle.width || 1
-      ctx.strokeStyle = lineStyle.color || '#DDE2EB'
+      ctx.lineWidth = width
+      ctx.strokeStyle = color
       ctx.moveTo(obj.x, -(that.H - that.cPaddingT - that.cPaddingB - nameH))
       ctx.lineTo(obj.x, 0)
       ctx.stroke()
@@ -90,15 +96,15 @@ class DrawLine extends Chart {
       item = that.animateArr[i]
       if (item.hide) continue
       const { lineStyle = {}, itemStyle = {}, color: itemColor, label = {}, data = [], smooth = false, areaStyle = {} } = item
-      const { color = '', width = 1 } = {...commonLineStyle, ...(lineStyle || {})};
-      const { symbol = commonItemStyle.symbol, symbolSize = commonItemStyle.symbolSize, symbolColor = commonItemStyle.symbolColor, borderWidth = commonItemStyle.borderWidth, borderType = commonItemStyle.borderType, borderColor = commonItemStyle.borderColor } = itemStyle
+      const { color = '', width = 1, cap = 'round' } = {...commonLineStyle, ...(lineStyle || {})};
       that.setCtxStyle({
         strokeStyle: color || itemColor,
-        lineWidth: width
+        lineWidth: width,
+        lineCap: cap
       })
       ctx.beginPath()
       that.drawSmoothLine(ctx, data, smooth, areaStyle)
-
+      const { symbol = commonItemStyle.symbol, symbolSize = commonItemStyle.symbolSize, symbolColor = commonItemStyle.symbolColor, borderWidth = commonItemStyle.borderWidth, borderType = commonItemStyle.borderType, borderColor = commonItemStyle.borderColor } = itemStyle
       const { show: labelShow = commonLabel.show, color: labelColor = commonLabel.color, fontWeight = commonLabel.fontWeight, fontFamily = commonLabel.fontFamily, fontSize = commonLabel.fontSize } = label
       // 画完曲线后再画圆球
       for (let j = 0, jl = item.data.length; j < jl; j++) {
@@ -120,7 +126,6 @@ class DrawLine extends Chart {
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
           const text = String(obj.num)
-          const textWidth = ctx.measureText(text).width; // 获取文字的长度
           const textHeight = ctx.measureText(text).height; // 获取文字的长度
           const symbolH = ((symbolSize + borderWidth) / 2) * (index === j ? 2 : 1)
           ctx.fillText(text, obj.x, -obj.h - textHeight - symbolH);
@@ -131,114 +136,260 @@ class DrawLine extends Chart {
   }
 
   animate () {
-    let that = this
+    if (timer) {
+      clearTimeout(timer)
+      timer = null
+    }
     let ctx = this.ctx
-    let xdis = that.W - that.cPaddingL * 2
-    let prev; let h = 0
-    let x = 0
-    let y = 0
-    let isStop = true
-    let animateIndexs = []
-    let animateIndex = 0
-    let dataLength = []
-    that.drawing = true;
-    function run () {
-      // ctx.clearRect(that.cPaddingL, that.cPaddingT, that.W - that.cPaddingL - that.cPaddingT, that.H - that.cPaddingB - that.cPaddingT)
-      ctx.save()
-      ctx.translate(that.cPaddingL, that.H - that.cPaddingB);
-      for (let i = 0, item, il = that.animateArr.length; i < il; i++) {
-        item = that.animateArr[i]
-        const { lineStyle = {}, itemStyle = {}, color: itemColor, label = {}, smooth = false, data = [], areaStyle = {} } = item
-        if (item.hide || !data || !data.length) continue
-        ctx.beginPath()
-        const { color = '', width = 2 } = {...commonLineStyle, ...(lineStyle || {})};
-        const { show: labelShow = commonLabel.show, color: labelColor = commonLabel.color, fontWeight = commonLabel.fontWeight, fontFamily = commonLabel.fontFamily, fontSize = commonLabel.fontSize } = label
-        that.setCtxStyle({
-          strokeStyle: color || itemColor,
-          lineWidth: width
-        })
-        that.drawSmoothLine(ctx, data, smooth, areaStyle)
-        // animateIndexs.push(animateIndex)
-        // dataLength.push(data.length)
-        const { symbol = commonItemStyle.symbol, symbolSize = commonItemStyle.symbolSize, symbolColor = commonItemStyle.symbolColor, borderWidth = commonItemStyle.borderWidth, borderType = commonItemStyle.borderType, borderColor = commonItemStyle.borderColor } = itemStyle
-        // 画完曲线后再画圆球
-        for (let j = 0, obj, jl = data.length; j < jl; j++) {
-          // if (j < animateIndex) {
-          obj = data[j]
-          obj.y = obj.p = obj.h
-          // 绘画拐点样式--画实心圆
-          if (symbol === 'solidCircle') {
-            ctx.beginPath();
-            ctx.arc(obj.x, -obj.h, (symbolSize + borderWidth), 0, Math.PI * 2, false);
-            ctx.fillStyle = borderColor || itemColor;
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(obj.x, -obj.h, symbolSize, 0, Math.PI * 2, false);
-            ctx.fillStyle = symbolColor || itemColor;
-            ctx.fill();
-          }
-          // 绘画拐点标签
-          if (labelShow && !obj.isLabel) {
-            obj.isLabel = true
-            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-            ctx.fillStyle = labelColor
-            ctx.textAlign = 'center'
-            ctx.textBaseline = 'middle'
-            const text = String(obj.num)
-            const textWidth = ctx.measureText(text).width; // 获取文字的长度
-            const textHeight = ctx.measureText(text).height; // 获取文字的长度
-            const symbolH =  (symbolSize + borderWidth) / 2
-            ctx.fillText(text, obj.x, -obj.h - textHeight - symbolH);
-          }
-          // } else {
-          //   break
-          // }
-        }
-      }
-      ctx.restore()
-      if (Math.max(...animateIndexs) == Math.max(...dataLength)) {
-        that.drawing = false
+    let i = 0
+    let index = 0
+    const animateArr = this.animateArr
+    this.drawing = true;
+    ctx.clearRect(0, 0, this.W, this.H);
+    // 画坐标系
+    this.drawAxis()
+    // 画标签
+    this.drawLegend(this.series)
+    // 画y轴刻度
+    this.drawY()
+    ctx.save()
+    ctx.translate(this.cPaddingL, this.H - this.cPaddingB);
+    this.previousData = deepCopy(animateArr)
+    duration = duration / animateArr.length
+    const drawLine = () => {
+      if (i > animateArr.length - 1) {
+        this.drawing = false;
+        ctx.restore()
         return
       }
-      // setTimeout(() => {
-      //   run()
-      // }, 1000 / 20)
+      const { lineStyle = {}, itemStyle = {}, color: itemColor, label = {}, smooth = false, data: item = [], areaStyle = {} } = animateArr[i]
+      const { color = '', width = 2, cap = 'round' } = {...commonLineStyle, ...(lineStyle || {})};
+      // index += 1
+      // const start = item[index - 1]
+      // const end = item[index]
+      // if (index > item.length - 1) {
+      //   // 补充最后一位
+      //   this.drawInflectionPoint(start, itemStyle)
+      //   this.drawLabel(start, label, itemStyle)
+      //   i++
+      //   index = 0
+      //   drawLine()
+      //   return
+      // }
+      ctx.beginPath()
+      this.setCtxStyle({
+        strokeStyle: color || itemColor,
+        lineWidth: width,
+        lineCap: cap
+      })
+      this.drawSmoothLine(ctx, item, smooth, areaStyle)
+      for (let j = 0, jl = item.length; j < jl; j++) {
+        this.drawInflectionPoint(item[j], itemStyle)
+        this.drawLabel(item[j], label, itemStyle)
+      }
+      i++
+      // index = 0
+      drawLine()
+      // this.setCtxStyle({
+      //   strokeStyle: color || itemColor,
+      //   lineWidth: width,
+      //   lineCap: cap
+      // })
+      // if (item[index]) {
+      //   ctx.beginPath();
+      //   ctx.moveTo(start.x, -start.h); // 从起始点开始绘制
+      //   ctx.lineTo(start.x, -start.h); // 从起始点开始绘制
+      //   this.drawLineAnimate(Date.now(), start, end, drawLine, {areaStyle, itemStyle, label, smooth})
+      // }
     }
-    run()
+    // 更新动画
+    // const elapsedTime = Date.now() - startTime;
+    // currentStep = Math.floor(elapsedTime / stepDuration);
+    // console.log('currentStep', currentStep)
+    // console.log('delta',currentStep,  animateArr[0].data.length)
+    drawLine()
+    // if (currentStep < animateArr[0].data.length) {
+    //   currentStep += 1
+    //  setTimeout(() => {
+    //    this.animate()
+    //  }, 1000)
+    // }
   }
 
-  drawSmoothLine(ctx, data, smooth, areaStyle) {
+  animateUpdate () {
+    if (timer) {
+      clearTimeout(timer)
+      timer = null
+    }
+    let ctx = this.ctx
+    this.drawing = true;
+    let time = null
+    startTime = null
+    let newData = this.animateArr
+    const drawLine = () => {
+      if (startTime === null) {
+        startTime = time;
+      }
+      const elapsedTime = time - startTime;
+      if (elapsedTime > 850) {
+        progress = progress === 1 ? 2 : 1
+      } else {
+        progress = Math.min(elapsedTime / 800, 1); // 确保进度不超过1
+      }
+      if (progress <= 1) {
+        ctx.clearRect(0, 0, this.W, this.H);
+        // 画坐标系
+        this.drawAxis()
+        // 画标签
+        this.drawLegend(this.series)
+        // 画y轴刻度
+        this.drawY()
+        ctx.save()
+        ctx.translate(this.cPaddingL, this.H - this.cPaddingB);
+        for (let i = 0, item, il = newData.length; i < il; i++) {
+          item = newData[i]
+          const oldItem = this.previousData[i] || {data: []}
+          let { lineStyle = {}, itemStyle = {}, color: itemColor, label = {}, smooth = false, data = [], areaStyle = {} } = item
+          const { color = '', width = 2, cap = 'round' } = {...commonLineStyle, ...(lineStyle || {})};
+          if (item.hide || !data || !data.length) continue
+          if (oldItem) {
+            data = data.map((cli, i) => {
+              if (cli.oldH === undefined) {
+                cli.oldH = cli.h
+              }
+              const oldY = (oldItem.data && oldItem.data[i] ? oldItem.data[i].h || 0 : 0)
+              let deltaY = (cli.oldH - oldY)
+              cli.h = oldY + (deltaY * progress)
+              return cli
+            })
+          }
+          ctx.beginPath()
+          this.setCtxStyle({
+            strokeStyle: color || itemColor,
+            lineWidth: width,
+            lineCap: cap
+          })
+          this.drawSmoothLine(ctx, data, smooth, areaStyle)
+          for (let j = 0, jl = data.length; j < jl; j++) {
+            this.drawInflectionPoint(data[j], itemStyle)
+            this.drawLabel(data[j], label, itemStyle)
+          }
+        }
+        ctx.restore()
+        timer = setTimeout(() => {
+          time = Date.now()
+          drawLine()
+        }, 16)
+      } else {
+        ctx.restore()
+        this.drawing = false;
+      }
+    }
+    time = Date.now()
+    drawLine()
+  }
+
+  drawLineAnimate (time, start, end, callback, allStyle) {
+    const ctx = this.ctx
+    if (startTime === null) {
+      startTime = time;
+    }
+    const { areaStyle, itemStyle, label, smooth } = allStyle
     const { color = commonAreaStyle.color } = areaStyle
-    let f = smooth ? 0.5 : 0.01
+
+    const elapsedTime = time - startTime;
+    progress = Math.min(elapsedTime / duration, 1); // 确保进度不超过1
+    // 计算当前点的位置
+    const currentX = start.x + (end.x - start.x) * progress;
+    const currentY = start.h + (end.h - start.h) * progress;
+
+    // 绘制连接线
+    const smoothX = -(currentX - start.x) * (smooth ? 0.5 : 0.1)
+    ctx.bezierCurveTo(start.x - smoothX, -start.h, currentX + smoothX, -currentY, currentX, -currentY)
+    if (progress < 1) {
+      timer = setTimeout(() => {
+        this.drawLineAnimate(Date.now(), start, end, callback, allStyle)
+      }, duration)
+    } else {
+      progress = 0
+      startTime = null
+      ctx.stroke();
+      // ctx.lineTo(currentX, -currentY);
+      if (color) {
+        ctx.lineTo(currentX, 0);
+        ctx.lineTo(start.x, 0);
+        if (typeof color === 'string') {
+          ctx.fillStyle = color
+        } else if (typeof color === 'object') {
+          const { direction = [0, 1, 0, 0], colors = [] } = color || {}
+          const gradient = ctx.createLinearGradient(this.W / 2 * (direction[0] || 0), -this.H * (direction[1] || 1), this.W / 2 * (direction[2] || 0), -this.H * (direction[0] || 0));
+          colors.forEach(item => {
+            gradient.addColorStop(item.offset, item.color)
+          })
+          ctx.fillStyle = gradient;
+        }
+        ctx.fill();
+      }
+      this.drawInflectionPoint(start, itemStyle)
+      this.drawLabel(start, label, itemStyle)
+      callback && callback()
+    }
+  }
+  // 绘画拐点
+  drawInflectionPoint (start, itemStyle) {
+    const ctx = this.ctx
+    const { symbol = commonItemStyle.symbol, symbolSize = commonItemStyle.symbolSize, symbolColor = commonItemStyle.symbolColor, borderWidth = commonItemStyle.borderWidth, borderType = commonItemStyle.borderType, borderColor = commonItemStyle.borderColor } = itemStyle
+    if (symbol === 'solidCircle') {
+      ctx.beginPath();
+      ctx.arc(start.x, -start.h, (symbolSize + borderWidth), 0, Math.PI * 2, false);
+      ctx.fillStyle = borderColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(start.x, -start.h, symbolSize, 0, Math.PI * 2, false);
+      ctx.fillStyle = symbolColor;
+      ctx.fill();
+    }
+  }
+
+  // 绘画拐点
+  drawLabel (obj, label, itemStyle) {
+    const ctx = this.ctx
+    const { show: labelShow = commonLabel.show, color: labelColor = commonLabel.color, fontWeight = commonLabel.fontWeight, fontFamily = commonLabel.fontFamily, fontSize = commonLabel.fontSize } = label
+    const { symbolSize = commonItemStyle.symbolSize, borderWidth = commonItemStyle.borderWidth } = itemStyle
+    if (labelShow) {
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.fillStyle = labelColor
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      const text = String(obj.num)
+      const textHeight = ctx.measureText(text).height; // 获取文字的长度
+      const symbolH =  (symbolSize + borderWidth) / 2
+      ctx.fillText(text, obj.x, -obj.h - textHeight - symbolH);
+    }
+  }
+
+  drawSmoothLine(ctx, data, smooth, areaStyle, length?) {
+    const { color = commonAreaStyle.color } = areaStyle
+    let f = smooth ? 0.5 : 0.05
     const points = data.map(item => {
       return {x: item.x, y: -item.h}
     })
     ctx.moveTo(points[0].x, points[0].y)
-    let dx1 = 0
-    let dy1 = 0
     let dx2 = 0
     let dy2 = 0
     let prevPoint = points[0]
-    let nextPoint = null
-    for (let i = 1; i < points.length; i++) {
-      // if (i <= animateIndex) {
+    length = length === undefined ? points.length : length
+    for (let i = 1; i < length; i++) {
       let currtPoint = points[i]
-      nextPoint = points[i + 1]
-      if (nextPoint) {
-        dx2 = -(nextPoint.x - currtPoint.x) * f
-      } else {
-        dx2 = 0
-        dy2 = 0
-      }
-      ctx.bezierCurveTo(prevPoint.x - dx1, prevPoint.y - dy1, currtPoint.x + dx2, currtPoint.y + dy2, currtPoint.x, currtPoint.y)
-      dx1 = dx2
-      dy1 = dy2
+      // nextPoint = points[i + 1]
+      const currentX = prevPoint.x + (currtPoint.x - prevPoint.x)
+      dx2 = -(currentX - prevPoint.x) * f
+      ctx.bezierCurveTo(prevPoint.x - dx2, prevPoint.y, currentX + dx2, currtPoint.y + dy2, currentX, currtPoint.y)
       prevPoint = currtPoint
     }
-    // }
     ctx.stroke()
     if (color) {
-      ctx.lineTo(data[points.length - 1].x, 0);
+      ctx.lineTo(data[length - 1].x, 0);
       ctx.lineTo(data[0].x, 0);
       if (typeof color === 'string') {
         ctx.fillStyle = color
@@ -258,28 +409,43 @@ class DrawLine extends Chart {
   }
 
   create () {
-    // 画坐标系
-    this.drawAxis()
     // 组织数据
     this.initData()
-    // 画标签
-    this.drawLegend(this.series)
-    // 画y轴刻度
-    this.drawY()
-    // 执行动画
-    this.animate()
+    // this.animate()
+    if (this.renderType === 'init') {
+      // // 画坐标系
+      // this.drawAxis()
+      // // 画标签
+      // this.drawLegend(this.series)
+      // // 画y轴刻度
+      // this.drawY()
+      // 执行动画
+      // startTime = Date.now();
+      this.animate();
+    } else {
+      // 更新动画
+      this.animateUpdate();
+    }
   }
 
   initData () {
       let that = this
       const { xl, xStart, xEnd } = this.getXdataLength()
-      let xs = (this.W - this.cPaddingL - this.cPaddingR) / ((xEnd - xStart) || 1)
-      let ydis = this.H - this.cPaddingB - this.cPaddingT
+      const { boundaryGap = true } = this.xAxis
+      this.xs = (this.W - this.cPaddingL - this.cPaddingR) / ((xEnd - xStart - (boundaryGap ? 0 : 1)) || 1)
+      this.nameH = 0
+      if (this.yAxis && !Array.isArray(this.yAxis)) {
+        const { name, nameTextStyle } = this.yAxis;
+        const { color = '#999', fontWeight = 'normal', fontSize = 22, fontFamily = 'sans-serif' } = nameTextStyle
+        this.ctx.fillStyle = color
+        this.ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+        this.nameH = name ? (this.ctx.measureText(name).height) : 0; // 获取文字的长度
+      }
+      let ydis = this.H - this.cPaddingB - this.cPaddingT - this.nameH
       let sl = 0
       let min = 0
       let max = 0
       let item; let obj; let arr = []
-
       if (!this.series.length) {
         return
       }
@@ -303,7 +469,7 @@ class DrawLine extends Chart {
       this.info = calculateNum(arr)
       min = this.info.min
       max = this.info.max
-
+      this.getZeroScaleY()
       for (let i = 0; i < this.series.length; i++) {
         item = this.series[i]
         if (!this.animateArr[i]) {
@@ -318,12 +484,13 @@ class DrawLine extends Chart {
             color: item.color,
             data: []
           })
+          // console.log('this.zeroScaleY', this.zeroScaleY)
           item.data.slice(xStart, xEnd).forEach((d, j) => {
             obj.data.push({
               num: d,
-              h: (d - min) / (max - min) * ydis,
+              h: d === 0 ? this.zeroScaleY : ((d - min) / (max - min) * ydis),
               p: 0,
-              x: Math.round(xs * (j + 1) - xs / 2),
+              x: Math.round(boundaryGap ? (this.xs * (j + 1) - this.xs / 2) : (this.xs * j)),
               y: 0
             })
           })
@@ -354,14 +521,14 @@ class DrawLine extends Chart {
     let cPaddingT = this.cPaddingT
     let cPaddingB = this.cPaddingB
     const xWidth = W - cPaddingL - cPaddingR
-    let xs = xWidth / ((xEnd - xStart) || 1) // x轴单位数，每个单位长度
+    // let xs = xWidth / ((xEnd - xStart) || 1) // x轴单位数，每个单位长度
     // this.xs = xs
     // ctx.clearRect(0, 0, W, H)
 
     // x轴
     ctx.save()
     ctx.translate(cPaddingL, H - cPaddingB)
-    const { axisTick, splitLine, axisLine = {}, axisLabel, formatter, data } = this.xAxis;
+    const { axisTick, splitLine, axisLine = {}, axisLabel, formatter, data, boundaryGap = true } = this.xAxis;
     const {show: axisLineShow = true} = axisLine
     const {show: axisTickShow = true, interval = 4, length: axisTickLength = 5, lineStyle = axisLineStyle } = axisTick || {}
     if (axisLineShow) {
@@ -402,7 +569,7 @@ class DrawLine extends Chart {
       }
       for (let i = 0; i < (xEnd - xStart); i++) {
         let obj = data[i + xStart]
-        let x = xs * (i + 1)
+        let x = Math.round(this.xs * (i + (boundaryGap ? 1 : 0)))
         if (axisTickShow) {
           const { color = '#DDE2EB', width = 1 } = {...axisLineStyle, ...(axisTick.lineStyle || {})};
           ctx.beginPath()
@@ -421,14 +588,14 @@ class DrawLine extends Chart {
         if (i % xInterval === 0 || axisLabelInterval === 0) {
           obj = String(formatter ? formatter(obj) : obj)
           // 这里后续可以支持设置文字与x轴的距离
-          const textX = x - xs / 2
+          const textX = Math.round(x - (boundaryGap ? (this.xs / 2) : 0))
           const textY = axisTickLength + margin
           let textI = obj.length
           if (overflow === 'truncate') {
-            textI = drawTexts(ctx, obj, xs)
+            textI = drawTexts(ctx, obj, this.xs)
             ctx.fillText(obj.substring(0, textI) + (textI !== obj.length ? '...' : ''), textX, textY)
           } else if (overflow === 'breakAll') {
-            drawBreakText(ctx, obj, xs, {
+            drawBreakText(ctx, obj, this.xs, {
               x: textX,
               y: textY
             })
@@ -522,6 +689,23 @@ class DrawLine extends Chart {
       ctx.restore()
     }
   }
+
+  getZeroScaleY () {
+    let nameH = 0
+    if (this.yAxis && !Array.isArray(this.yAxis) && this.yAxis.name) {
+      nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
+    }
+    let ydis = this.H - this.cPaddingB - this.cPaddingT - nameH
+    let yl = this.info.num
+    let ys = ydis / yl
+    for (let i = 0; i <= yl; i++) {
+      let dim = Math.floor(this.info.step * i + this.info.min)
+      if (dim == 0) { // 记录0刻度的坐标渲染有用
+        this.zeroScaleY = ys * i
+      }
+    }
+  }
+
 }
 
 

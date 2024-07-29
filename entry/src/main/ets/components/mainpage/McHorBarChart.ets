@@ -4,7 +4,7 @@ import { Options } from './Options'
 import { globalBuilder } from './Tooltip'
 import { InterfaceObj } from '../../utils/chartInterface'
 import { Chart as CommonChart } from '../../utils/charts'
-let drawMcBarChart: CommonChart;
+let drawMcHorBarChart: CommonChart;
 @Component
 export struct McHorBarChart {
   @ObjectLink @Watch('onCountUpdated') options: Options;
@@ -14,18 +14,18 @@ export struct McHorBarChart {
   private tooltipClick: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void = globalBuilder; // 自定义组件
   // @Watch 回调
-  onCountUpdated(options: Options): void {
+  onCountUpdated(): void {
     this.renderType = 'update'
     this.chartOption = this.options
   }
   aboutToAppear() {
     this.chartOption = this.options
-    drawMcBarChart = new DrawHorBar()
+    drawMcHorBarChart = new DrawHorBar()
   }
   build() {
     Chart({
       options: this.chartOption,
-      drawMcChart: drawMcBarChart,
+      drawMcChart: drawMcHorBarChart,
       customTooltip: this.customTooltip,
       renderType: this.renderType,
       click: (event: InterfaceObj, params: InterfaceObj) => {
