@@ -38,6 +38,23 @@ const areaStyle: InterfaceObj = {
   color: ''
 }
 
+const labelLine: InterfaceObj = {
+  show: true, // 默认开启，如果当label的position的值不是outside，则自动隐藏
+  length: 10,
+  length2: 20,
+  minTurnAngle: 90,
+  lineStyle
+}
+
+const emphasis: InterfaceObj = {
+  scale: true,
+  scaleSize: 4,
+  shadowColor: 'rgba(0, 0, 0, 0.5)',
+  shadowBlur: 15,
+  shadowOffsetX: 0,
+  shadowOffsetY: 0
+}
+
 
 const seriesOpt: SeriesInterface = {
   name: '',
@@ -54,21 +71,8 @@ const seriesOpt: SeriesInterface = {
       return params.name
     }
   },
-  labelLine: {
-    show: true, // 默认开启，如果当label的position的值不是outside，则自动隐藏
-    length: 10,
-    length2: 20,
-    minTurnAngle: 90,
-    lineStyle
-  },
-  emphasis: {
-    scale: true,
-    scaleSize: 4,
-    shadowColor: 'rgba(0, 0, 0, 0.5)',
-    shadowBlur: 15,
-    shadowOffsetX: 0,
-    shadowOffsetY: 0
-  },
+  labelLine,
+  emphasis,
   areaStyle,
   itemStyle,
   stack: '', // 数据堆叠
@@ -181,6 +185,7 @@ const legend: LegendInterface = {
   itemTextGap: 5, // 图例图例之间的间隔。
   itemWidth: 16, // 图例标记的图形宽度。
   itemHeight: 8, // 图例标记的图形高度。
+  orient: 'vertical', // 图例列表的布局朝向。 可选：'horizontal'、'vertical'
   textStyle: legendTextStyle
 }
 
@@ -238,11 +243,13 @@ const radar: RadarInterface = {
 
 export {
   lineStyle,
+  labelLine,
   axisLineStyle,
   yLineStyle,
   barStyle,
   itemStyle,
   areaStyle,
+  emphasis,
   label,
   seriesOpt,
   xAxisOpt,

@@ -1,11 +1,6 @@
 import { Chart } from './charts'
 import { calculateNum, drawTexts, drawBreakText, deepCopy, requestAnimationFramePolyfill } from './index'
 import { lineStyle as commonLineStyle, axisLineStyle, yLineStyle, label as commonLabel, itemStyle as commonItemStyle, areaStyle as commonAreaStyle } from './defaultOption'
-// 动画参数
-let startTime = null;
-let timer = null;
-let duration = 200; // 动画持续时间，单位毫秒
-let progress = 0; // 动画进度
 /**
  * 折线图
  */
@@ -13,6 +8,12 @@ class DrawLine extends Chart {
   zeroScaleY = 0
   xs = 0
   nameH = 0
+  private animationInfo = {
+    startTime: null,
+    timer: null,
+    duration: 200,
+    progress: 0
+  }
   constructor () {
     super('line')
   }
@@ -103,7 +104,7 @@ class DrawLine extends Chart {
         lineCap: cap
       })
       ctx.beginPath()
-      that.drawSmoothLine(ctx, data, smooth, areaStyle)
+      that.drawSmoothLine(ctx, data, smooth, areaStyle, width)
       const { symbol = commonItemStyle.symbol, symbolSize = commonItemStyle.symbolSize, symbolColor = commonItemStyle.symbolColor, borderWidth = commonItemStyle.borderWidth, borderType = commonItemStyle.borderType, borderColor = commonItemStyle.borderColor } = itemStyle
       const { show: labelShow = commonLabel.show, color: labelColor = commonLabel.color, fontWeight = commonLabel.fontWeight, fontFamily = commonLabel.fontFamily, fontSize = commonLabel.fontSize } = label
       // 画完曲线后再画圆球
@@ -136,9 +137,9 @@ class DrawLine extends Chart {
   }
 
   animate () {
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
+    if (this.animationInfo.timer) {
+      clearTimeout(this.animationInfo.timer)
+      this.animationInfo.timer = null
     }
     let ctx = this.ctx
     let i = 0
@@ -155,7 +156,7 @@ class DrawLine extends Chart {
     ctx.save()
     ctx.translate(this.cPaddingL, this.H - this.cPaddingB);
     this.previousData = deepCopy(animateArr)
-    duration = duration / animateArr.length
+    this.animationInfo.duration = this.animationInfo.duration / animateArr.length
     const drawLine = () => {
       if (i > animateArr.length - 1) {
         this.drawing = false;
@@ -182,7 +183,7 @@ class DrawLine extends Chart {
         lineWidth: width,
         lineCap: cap
       })
-      this.drawSmoothLine(ctx, item, smooth, areaStyle)
+      this.drawSmoothLine(ctx, item, smooth, areaStyle, width)
       for (let j = 0, jl = item.length; j < jl; j++) {
         this.drawInflectionPoint(item[j], itemStyle)
         this.drawLabel(item[j], label, itemStyle)
@@ -217,26 +218,26 @@ class DrawLine extends Chart {
   }
 
   animateUpdate () {
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
+    if (this.animationInfo.timer) {
+      clearTimeout(this.animationInfo.timer)
+      this.animationInfo.timer = null
     }
     let ctx = this.ctx
     this.drawing = true;
     let time = null
-    startTime = null
+    this.animationInfo.startTime = null
     let newData = this.animateArr
     const drawLine = () => {
-      if (startTime === null) {
-        startTime = time;
+      if (this.animationInfo.startTime === null) {
+        this.animationInfo.startTime = time;
       }
-      const elapsedTime = time - startTime;
+      const elapsedTime = time - this.animationInfo.startTime;
       if (elapsedTime > 850) {
-        progress = progress === 1 ? 2 : 1
+        this.animationInfo.progress = this.animationInfo.progress === 1 ? 2 : 1
       } else {
-        progress = Math.min(elapsedTime / 800, 1); // 确保进度不超过1
+        this.animationInfo.progress = Math.min(elapsedTime / 800, 1); // 确保进度不超过1
       }
-      if (progress <= 1) {
+      if (this.animationInfo.progress <= 1) {
         ctx.clearRect(0, 0, this.W, this.H);
         // 画坐标系
         this.drawAxis()
@@ -259,7 +260,7 @@ class DrawLine extends Chart {
               }
               const oldY = (oldItem.data && oldItem.data[i] ? oldItem.data[i].h || 0 : 0)
               let deltaY = (cli.oldH - oldY)
-              cli.h = oldY + (deltaY * progress)
+              cli.h = oldY + (deltaY * this.animationInfo.progress)
               return cli
             })
           }
@@ -269,14 +270,14 @@ class DrawLine extends Chart {
             lineWidth: width,
             lineCap: cap
           })
-          this.drawSmoothLine(ctx, data, smooth, areaStyle)
+          this.drawSmoothLine(ctx, data, smooth, areaStyle, width)
           for (let j = 0, jl = data.length; j < jl; j++) {
             this.drawInflectionPoint(data[j], itemStyle)
             this.drawLabel(data[j], label, itemStyle)
           }
         }
         ctx.restore()
-        timer = setTimeout(() => {
+        this.animationInfo.timer = setTimeout(() => {
           time = Date.now()
           drawLine()
         }, 16)
@@ -291,28 +292,28 @@ class DrawLine extends Chart {
 
   drawLineAnimate (time, start, end, callback, allStyle) {
     const ctx = this.ctx
-    if (startTime === null) {
-      startTime = time;
+    if (this.animationInfo.startTime === null) {
+      this.animationInfo.startTime = time;
     }
     const { areaStyle, itemStyle, label, smooth } = allStyle
     const { color = commonAreaStyle.color } = areaStyle
 
-    const elapsedTime = time - startTime;
-    progress = Math.min(elapsedTime / duration, 1); // 确保进度不超过1
+    const elapsedTime = time - this.animationInfo.startTime;
+    this.animationInfo.progress = Math.min(elapsedTime / this.animationInfo.duration, 1); // 确保进度不超过1
     // 计算当前点的位置
-    const currentX = start.x + (end.x - start.x) * progress;
-    const currentY = start.h + (end.h - start.h) * progress;
+    const currentX = start.x + (end.x - start.x) * this.animationInfo.progress;
+    const currentY = start.h + (end.h - start.h) * this.animationInfo.progress;
 
     // 绘制连接线
     const smoothX = -(currentX - start.x) * (smooth ? 0.5 : 0.1)
     ctx.bezierCurveTo(start.x - smoothX, -start.h, currentX + smoothX, -currentY, currentX, -currentY)
-    if (progress < 1) {
-      timer = setTimeout(() => {
+    if (this.animationInfo.progress < 1) {
+      this.animationInfo.timer = setTimeout(() => {
         this.drawLineAnimate(Date.now(), start, end, callback, allStyle)
-      }, duration)
+      }, this.animationInfo.duration)
     } else {
-      progress = 0
-      startTime = null
+      this.animationInfo.progress = 0
+      this.animationInfo.startTime = null
       ctx.stroke();
       // ctx.lineTo(currentX, -currentY);
       if (color) {
@@ -368,17 +369,17 @@ class DrawLine extends Chart {
     }
   }
 
-  drawSmoothLine(ctx, data, smooth, areaStyle, length?) {
+  drawSmoothLine(ctx, data, smooth, areaStyle, width) {
     const { color = commonAreaStyle.color } = areaStyle
     let f = smooth ? 0.5 : 0.05
     const points = data.map(item => {
       return {x: item.x, y: -item.h}
     })
-    ctx.moveTo(points[0].x, points[0].y)
+    ctx.moveTo(points[0].x + width / 2, points[0].y)
     let dx2 = 0
     let dy2 = 0
     let prevPoint = points[0]
-    length = length === undefined ? points.length : length
+    let length = points.length
     for (let i = 1; i < length; i++) {
       let currtPoint = points[i]
       // nextPoint = points[i + 1]
@@ -389,13 +390,16 @@ class DrawLine extends Chart {
     }
     ctx.stroke()
     if (color) {
-      ctx.lineTo(data[length - 1].x, 0);
-      ctx.lineTo(data[0].x, 0);
+      // ctx.lineTo(data[length - 1].x + width / 2, points[length - 1].y);
+      ctx.lineTo(data[length - 1].x, -this.zeroScaleY);
+      // ctx.lineTo(data[0].x - width / 2, points[0].y);
+      ctx.lineTo(data[0].x, -this.zeroScaleY);
+      // const mathData = points.map(item => item.y)
       if (typeof color === 'string') {
         ctx.fillStyle = color
       } else if (typeof color === 'object') {
         const { direction = [0, 1, 0, 0], colors = [] } = color || {}
-        const gradient = ctx.createLinearGradient(this.W / 2 * (direction[0] || 0), -this.H * (direction[1] || 1), this.W / 2 * (direction[2] || 0), -this.H * (direction[0] || 0));
+        const gradient = ctx.createLinearGradient((this.W - this.cPaddingL - this.cPaddingR) * (direction[0] || 0), -this.H * (direction[1] || 1), (this.W - this.cPaddingL - this.cPaddingR) * (direction[2] || 0), -this.H * (direction[0] || 0));
         colors.forEach(item => {
           gradient.addColorStop(item.offset, item.color)
         })

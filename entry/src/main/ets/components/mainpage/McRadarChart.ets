@@ -1,21 +1,21 @@
 import DrawRadar from '../../utils/drawRadar'
 import { Chart } from './Chart'
 import { Options } from './Options'
-import { InterfaceObj } from '../../utils/chartInterface'
+import { InterfaceObj, OptionInterface } from '../../utils/chartInterface'
 import { globalBuilder } from './Tooltip'
 import { Chart as CommonChart } from '../../utils/charts'
 let drawMcLineChart: CommonChart;
 @Component
 export struct McRadarChart {
-  @ObjectLink @Watch('onCountUpdated') options: Options;
-  @State chartOption: Options = new Options({})
+  @Prop @Watch('onCountUpdated') options: Options;
+  @State chartOption: OptionInterface = {};
   @State renderType: string = 'init'
   private click: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   private tooltipClick: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void = globalBuilder; // 自定义组件
   // @Watch 回调
   onCountUpdated(): void {
-    this.chartOption = new Options(this.options)
+    this.chartOption = this.options.options
   }
   aboutToAppear() {
     this.onCountUpdated()
@@ -23,7 +23,7 @@ export struct McRadarChart {
   }
   build() {
     Chart({
-      options: this.chartOption,
+      options: $chartOption,
       drawMcChart: drawMcLineChart,
       renderType: this.renderType,
       customTooltip: this.customTooltip,

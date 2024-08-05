@@ -1,5 +1,7 @@
 import { Chart } from './charts'
-import { percentageConversion, isPointInSector, countDownLatch } from './index'
+import { percentageConversion, isPointInSector, countDownLatch, roundRect, getColor, deepCopy } from './index'
+import { legend as commonLegend, legendTextStyle, label as commonLabel, labelLine as commonLabelLine, lineStyle as commonLineStyle,
+  emphasis as commonEmphasis} from './defaultOption'
 class DrawPie extends Chart {
   private radius = ['70%']
   private center = ['50%', '50%']
@@ -38,6 +40,11 @@ class DrawPie extends Chart {
   }
   // 存储所有图形的数据
   private pieData = []
+
+  private animationInfo = {
+    timer: null
+  }
+
   constructor () {
     super('pie')
   }
@@ -70,6 +77,7 @@ class DrawPie extends Chart {
       const flag = isPointInSector(pos.x, pos.y, centerX, centerY, radius, startAng, angle)
       if (flag) {
         that.clearGrid(i)
+        pos.x -= 20
         callback(true, e, {
           x: pos.x,
           y: pos.y,
@@ -122,26 +130,30 @@ class DrawPie extends Chart {
           tAng = startAng + item.ang / 2,
           x = tr * Math.cos(tAng),
           y = tr * Math.sin(tAng);
+        let labelX, labelY = y;
         if (isLine) {
           ctx.lineWidth = width;
-          ctx.strokeStyle = color || that.color[i];
+          ctx.strokeStyle = color || item.color;
           ctx.lineCap = 'round';
           ctx.beginPath();
           const innerR = (innerRadius + (innerRadius - innerRadius) / 2)
-          ctx.moveTo(innerR * Math.cos(tAng), innerR * Math.sin(tAng));
+          ctx.moveTo(x, y);
+          const lengthX = (tr + length) * Math.cos(tAng)
+          const lengthY = (tr + length) * Math.sin(tAng)
+          const lengthY2 = (tr + length2) * Math.sin(tAng)
+          labelY = lengthY2
           if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
-            ctx.lineTo(x + length, y);
+            ctx.lineTo(lengthX, lengthY);
+            ctx.lineTo(x + length2, lengthY2);
           } else {
-            ctx.lineTo(x - length, y);
+            ctx.lineTo(lengthX, lengthY);
+            ctx.lineTo(x - length2, lengthY2);
           }
         }
-        let labelX, labelY = y;
         if (tAng >= -Math.PI / 2 && tAng <= Math.PI / 2) {
-          isLine && ctx.lineTo(x + length2, y);
           labelX = x + label.distanceToLabelLine + (isLine ? length2 : 0)
           textAlign= 'left'
         } else {
-          isLine && ctx.lineTo(x - length2, y);
           labelX = x - label.distanceToLabelLine - (isLine ? length2 : 0)
           textAlign = 'right'
         }
@@ -224,6 +236,101 @@ class DrawPie extends Chart {
     })
     ctx.restore();
   }
+
+  drawLegend (data, iwf = false, legendIndex = 0) {
+    data = deepCopy(data)
+    const {
+      show = commonLegend.show,
+      itemGap = commonLegend.itemGap,
+      itemTextGap = commonLegend.itemTextGap,
+      itemWidth = commonLegend.itemWidth,
+      itemHeight = commonLegend.itemHeight,
+      textStyle = commonLegend.textStyle,
+      left = commonLegend.left,
+      top = commonLegend.top,
+      orient = commonLegend.orient } = this.legend
+    if (!show) return;
+    let sp = 0;
+    let wrapSp = 0;
+    let item; let ctx = this.ctx;
+    let W = this.W;
+    let cPaddingL = this.cPaddingL;
+    let cPaddingR = this.cPaddingR;
+    // let nl = percentageConversion(left)
+    // let nt = percentageConversion(top)
+    const { color = legendTextStyle.color, fontWeight = legendTextStyle.fontWeight, fontSize = legendTextStyle.fontSize, fontFamily = legendTextStyle.fontFamily } = textStyle
+    // 先计算出整体的宽度，然后设置居中
+    let isWrapFLag = false
+    for (let i = 0; i < data.length; i++) {
+      item = data[i]
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.textAlign = 'left'
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = color
+      const tw = ctx.measureText(item.name).width
+      sp += itemWidth + tw + itemTextGap + itemGap
+      wrapSp += itemWidth + tw + itemTextGap + itemGap
+      if (wrapSp >= (W - cPaddingL - cPaddingR)) {
+        wrapSp = 0
+        isWrapFLag = true
+        item.wrapFlag = true
+      }
+      if (sp >= (W - cPaddingL - cPaddingR)) {
+        item.wf = true
+      }
+    }
+    if (isWrapFLag && !iwf) {
+      const wrapLegend = []
+      let item = []
+      for (let i = 0; i < data.length; i++) {
+        if (!data[i].wrapFlag) {
+          item.push(data[i])
+        } else {
+          wrapLegend.push(item)
+          item = [data[i]]
+        }
+        if (i === data.length - 1) {
+          wrapLegend.push(item)
+        }
+      }
+      wrapLegend.forEach((item, index) => {
+        this.drawLegend(item, true, index)
+      })
+      return
+    }
+    ctx.save()
+    ctx.translate(this.W * percentageConversion(left) - sp / 2, this.H * percentageConversion(top))
+    sp = 0
+    this.legendData = []
+    for (let i = 0; i < data.length; i++) {
+      item = data[i]
+      const tw = ctx.measureText(item.name).width
+      const th = ctx.measureText(item.name).height
+      const h = Math.max(th, itemHeight)
+      const wrapY = item.wf ? (h + 4) * legendIndex : 0
+      ctx.fillStyle = item.color
+      roundRect(ctx, sp, percentageConversion(top) + wrapY, itemWidth, itemHeight, 2)
+      ctx.globalAlpha = item.hide ? 0.3 : 1
+      ctx.fill()
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.textAlign = 'left'
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = color
+      ctx.fillText(item.name, itemWidth + sp + itemTextGap, percentageConversion(top) + itemHeight / 2 + wrapY)
+      // 计算每個图例的距离：上一个的图例宽度 + 上一个的图例文本与图例间隔 + 图例之间的间隔
+      sp += itemWidth + tw + itemTextGap + itemGap
+      this.legendData.push({
+        hide: !!item.hide,
+        name: item.name,
+        x: itemWidth + sp + itemTextGap,
+        y: this.H * percentageConversion(top),
+        w: sp,
+        h
+      });
+    }
+    ctx.restore()
+  }
+
   animate() {
     let that = this,
       ctx = that.ctx,
@@ -236,63 +343,7 @@ class DrawPie extends Chart {
     isStop = true;
     // ctx.save();
     const [cx, cy] = that.setCenter(true)
-    // startAng = -Math.PI / 2;
-    // for (let i = 0, l = that.animateArr.length; i < 2; i++) {
-    //   item = that.animateArr[i];
-    //   if (item.hide) continue;
-    //   index += 1
-    //   ctx.fillStyle = item.color;
-    //   const endAng = item.ang
-    //   ang = 0
-    //   ctx.beginPath();
-    //   ctx.moveTo(0, 0);
-    //   function run() {
-    //     // if (item.last > item.ang) {
-    //     //   ang += item.cur - 0.06;
-    //     //   if (ang < item.ang) {
-    //     //     item.cur = item.last = item.ang;
-    //     //   }
-    //     // } else {
-    //     //   ang += item.cur + 0.06;
-    //     //   if (ang > item.ang) {
-    //     //     item.cur = item.last = item.ang;
-    //     //   }
-    //     // }
-    //     ang += 0.06
-    //     // if (item.cur != item.ang) {
-    //     //   item.cur = ang;
-    //     //   isStop = false;
-    //     // }
-    //     console.log(item.cur, ang)
-    //     ctx.arc(0, 0, radius, startAng, startAng + ang, false);
-    //     // ctx.arc(0, 0, radius, i !== 0 ? startAng + that.padAngle : startAng, startAng + ang + (index === len ? that.padAngle: 0), false);
-    //     if (innerRadius) {
-    //       ctx.fillStyle = '#fff';
-    //       ctx.beginPath();
-    //       ctx.moveTo(0, 0);
-    //       ctx.arc(0, 0, innerRadius, startAng, startAng + item.ang, false);
-    //       ctx.closePath();
-    //       ctx.fill();
-    //     }
-    //     if (ang < item.ang) {
-    //       countDownLatch(30)
-    //       // run()
-    //     }
-    //   };
-    //   run()
-    //   ctx.closePath();
-    //   ctx.fill();
-    //   startAng += item.ang;
-    // }
-    // ctx.restore();
-    // if (isStop) {
-    //   // that.clearGrid();
-    //   return;
-    // }
-    // setTimeout(() => {
-    //   run()
-    // }, 1000 / 30)
-    let currentProgress = 0.13;
+    let currentProgress = 1;
     const speed = 0.02;
     const data = that.animateArr
     function draw() {
@@ -340,7 +391,7 @@ class DrawPie extends Chart {
       // 检查是否完成整个圆的绘制
       if (currentProgress <= 1) {
         // 使用setTimeout来模拟requestAnimationFrame
-        setTimeout(draw, 16); // 大约每16毫秒更新一次，模拟60fps
+        this.animationInfo.timer = setTimeout(draw, 16); // 大约每16毫秒更新一次，模拟60fps
       } else {
         that.clearGrid();
       }
@@ -355,6 +406,9 @@ class DrawPie extends Chart {
     draw()
   }
   create() {
+    if (this.animationInfo.timer) {
+      clearTimeout(this.animationInfo.timer)
+    }
     this.initData();
     this.animate();
   }
@@ -365,10 +419,10 @@ class DrawPie extends Chart {
       item = this.series[i]
       this.radius = item.radius || ['60%']
       this.center = item.center || ['50%', '50%']
-      this.label = Object.assign({}, this.label, item.label)
-      this.emphasis = Object.assign({}, this.emphasis, item.emphasis || {})
-      this.labelLine = Object.assign({}, this.labelLine, item.labelLine || {})
-      this.lineStyle = Object.assign({}, this.lineStyle, item.labelLine?.lineStyle || {})
+      this.label = Object.assign({...commonLabel}, this.label, item.label)
+      this.emphasis = Object.assign({...commonEmphasis}, this.emphasis, item.emphasis || {})
+      this.labelLine = Object.assign({...commonLabelLine}, this.labelLine, item.labelLine || {})
+      this.lineStyle = Object.assign({...commonLineStyle}, this.lineStyle, item.labelLine?.lineStyle || {})
       this.padAngle = (item.padAngle || 0) * 2 * Math.PI / 360
       this.pieData = item.data || []
     }
@@ -378,7 +432,7 @@ class DrawPie extends Chart {
       item = this.pieData[i];
       // 赋予没有颜色的项
       if (!item.color) {
-        item.color = this.color[i];
+        item.color = getColor(i, this.color);
       }
       item.name = item.name || 'unnamed';
       if (item.hide) continue;
@@ -424,7 +478,7 @@ class DrawPie extends Chart {
     const { value, x, y } = info
     ctx.textBaseline = "middle";
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-    ctx.fillStyle = color || this.color[index]
+    ctx.fillStyle = color || getColor(index, this.color)
     ctx.fillText(value, x, y);
   }
 }

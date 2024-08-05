@@ -1,4 +1,4 @@
-import { InterfaceObj } from '../../utils/chartInterface'
+import { InterfaceObj, OptionInterface } from '../../utils/chartInterface'
 import DrawPoint from '../../utils/drawPoint'
 import { Chart } from './Chart'
 import { Options } from './Options'
@@ -7,15 +7,15 @@ import { Chart as CommonChart } from '../../utils/charts'
 let drawMcPointChart: CommonChart;
 @Component
 export struct McPointChart {
-  @ObjectLink @Watch('onCountUpdated') options: Options;
-  @State chartOption: Options = new Options({})
+  @Prop @Watch('onCountUpdated') options: Options;
+  @State chartOption: OptionInterface = {};
   @State renderType: string = 'init'
   private click: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   private tooltipClick: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   @BuilderParam customTooltip: (tooltipInfo: InterfaceObj) => void = globalBuilder; // 自定义组件
   // @Watch 回调
   onCountUpdated(): void {
-    this.chartOption = new Options(this.options)
+    this.chartOption = this.options.options
   }
   aboutToAppear() {
     this.onCountUpdated()
@@ -23,7 +23,7 @@ export struct McPointChart {
   }
   build() {
     Chart({
-      options: this.chartOption,
+      options: $chartOption,
       drawMcChart: drawMcPointChart,
       renderType: this.renderType,
       customTooltip: this.customTooltip,

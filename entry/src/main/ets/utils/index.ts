@@ -311,11 +311,14 @@ export function rotatePoint(x, y, centerX, centerY, deltaTheta) {
   return {x, y};
 }
 
-export function assign(target: object, ...source: object[]): object {
-  for (const items of source) {
-    for (const key of Object.keys(items)) {
-      target[key] = Reflect.get(items, key)
-    }
+export function assign(target: object, source: object): object {
+  // for (const items of source) {
+  //   // for (const key of Object.keys(items)) {
+  //   //   target[key] = Reflect.get(items, key)
+  //   // }
+  // }
+  for (const key in source) {
+    target[key] = source[key]
   }
   return target;
 }
@@ -450,4 +453,75 @@ export function requestAnimationFramePolyfill(callback) {
     callback(delta); // 传递时间差给回调函数
     requestAnimationFramePolyfill(animate); // 递归调用自身
   }, 1000 / 60); // 模拟60fps
+}
+
+function parseColor(color) {
+  let match;
+
+  // 处理 RGB 和 RGBA
+  if ((match = color.match(/^rgb(a)?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(,\s*([01]|[0-9]\.[0-9]+))?\)$/))) {
+    const [fullMatch, rgba, r, g, b, , a] = match;
+    return {
+      format: rgba === 'rgba' ? 'rgba' : 'rgb',
+      r: parseInt(r, 10),
+      g: parseInt(g, 10),
+      b: parseInt(b, 10),
+      a: a ? parseFloat(a) : 1
+    };
+  }
+
+  // 处理短十六进制
+  else if ((match = color.match(/^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/))) {
+    const [fullMatch, r, g, b] = match;
+    return {
+      format: 'rgb',
+      r: parseInt(r + r, 16),
+      g: parseInt(g + g, 16),
+      b: parseInt(b + b, 16),
+      a: 1
+    };
+  }
+
+  // 处理长十六进制
+  else if ((match = color.match(/^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})?$/))) {
+    const [fullMatch, r, g, b, a] = match;
+    return {
+      format: a ? 'rgba' : 'rgb',
+      r: parseInt(r, 16),
+      g: parseInt(g, 16),
+      b: parseInt(b, 16),
+      a: a ? parseInt(a, 16) / 255 : 1
+    };
+  }
+
+  throw new Error('Invalid color format');
+}
+
+export function getColor (i, color) {
+  if (color[i]) {
+    return color[i]
+  }
+  let opacityBase = 1
+  let opacityDecrease = 0.1
+  const colors = ['#296DFF', 'rgba(84, 129, 253, 1)', '#ff1acffd', '#ff72e4fd', '#7B72F7', '#F85758', '#FFBF29', '#D1E9F9', '#F5FAFC', '#5A657A']
+  const colorIndex = i % colors.length;
+  try {
+    let opacity = opacityBase - (Math.round(i / color.length) + 1) * opacityDecrease;
+    const parsedColor = parseColor(colors[colorIndex]);
+
+    // 确保透明度不会低于0.1
+    if (opacity < 0.1) {
+      opacity = 0.1;
+    }
+
+    // 更新透明度
+    parsedColor.a = opacity;
+
+    // 生成新的颜色字符串
+    const newColor = `rgba(${parsedColor.r}, ${parsedColor.g}, ${parsedColor.b}, ${parsedColor.a})`;
+    return newColor
+  } catch (e) {
+    return colors[i] || '#000'
+  }
+
 }

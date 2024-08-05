@@ -42,6 +42,7 @@ interface LegendInterface {
   show?: boolean,
   left?: string,
   top?: string,
+  orient?: string,
   itemGap?: number,
   itemTextGap?: number,
   itemWidth?: number,
@@ -83,15 +84,15 @@ interface SeriesInterface {
 
 // 缩放的特征接口
 interface DataZoomInterface {
-  show: boolean,
+  show?: boolean,
   num?: number,
-  start: number,
-  end: number
+  start?: number,
+  end?: number
 }
 
 // 雷达图的特征接口
 interface RadarInterface {
-  indicator: InterfaceObj[],
+  indicator?: InterfaceObj[],
   center?: Array<string | number>,
   radius?: number | string,
   startAngle?: number,

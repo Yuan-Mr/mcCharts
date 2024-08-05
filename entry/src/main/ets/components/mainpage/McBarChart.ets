@@ -2,13 +2,13 @@ import DrawBar from '../../utils/drawBar'
 import { Chart } from './Chart'
 import { Options } from './Options'
 import { globalBuilder } from './Tooltip'
-import { InterfaceObj } from '../../utils/chartInterface'
+import { InterfaceObj, OptionInterface } from '../../utils/chartInterface'
 import { Chart as CommonChart } from '../../utils/charts'
 let drawMcBarChart: CommonChart;
 @Component
 export struct McBarChart {
-  @ObjectLink @Watch('onCountUpdated') options: Options;
-  @State chartOption: Options = new Options({})
+  @Prop @Watch('onCountUpdated') options: Options;
+  @State chartOption: OptionInterface = {};
   @State renderType: string = 'init'
   private click: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   private tooltipClick: Function = (event: InterfaceObj, params: InterfaceObj) => {}
@@ -16,15 +16,15 @@ export struct McBarChart {
   // @Watch 回调
   onCountUpdated(options: Options): void {
     this.renderType = 'update'
-    this.chartOption = this.options
+    this.chartOption = this.options.options
   }
   aboutToAppear() {
-    this.chartOption = this.options
+    this.chartOption = this.options.options
     drawMcBarChart = new DrawBar()
   }
   build() {
     Chart({
-      options: this.chartOption,
+      options: $chartOption,
       drawMcChart: drawMcBarChart,
       customTooltip: this.customTooltip,
       renderType: this.renderType,

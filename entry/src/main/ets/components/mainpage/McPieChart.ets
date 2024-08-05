@@ -2,7 +2,7 @@ import DrawPie from '../../utils/drawPie'
 import { Chart } from './Chart'
 import { Options } from './Options'
 import { globalBuilder } from './Tooltip'
-import { InterfaceObj } from '../../utils/chartInterface'
+import { InterfaceObj, OptionInterface } from '../../utils/chartInterface'
 import { Chart as CommonChart } from '../../utils/charts'
 import { assign } from '../../utils/index'
 let drawMcPieChart: CommonChart;
@@ -15,8 +15,8 @@ let drawMcPieChart: CommonChart;
 
 @Component
 export struct McPieChart {
-  @ObjectLink @Watch('onCountUpdated') options: Options;
-  @State chartOption: Options = new Options({})
+  @Prop @Watch('onCountUpdated') options: Options;
+  @State chartOption: OptionInterface = {}
   @State renderType: string = 'init'
   private click: Function = (event: InterfaceObj, params: InterfaceObj) => {}
   private tooltipClick: Function = (event: InterfaceObj, params: InterfaceObj) => {}
@@ -49,11 +49,11 @@ export struct McPieChart {
   // @BuilderParam customTitle: (titleInfo: InterfaceObj) => void; // 自定义Title
   // @Watch 回调
   onCountUpdated(): void {
-    this.chartOption = new Options(this.options)
-    if (this.options.title) {
-      this.titleOption = assign(this.titleOption, this.options.title)
-      this.textStyle = assign(this.textStyle, this.options.title.textStyle || {})
-      this.subtextStyle = assign(this.subtextStyle, this.options.title.subtextStyle || {})
+    this.chartOption = this.options.options
+    if (this.chartOption.title) {
+      this.titleOption = assign(this.titleOption, this.chartOption.title)
+      this.textStyle = assign(this.textStyle, this.chartOption.title.textStyle || {})
+      this.subtextStyle = assign(this.subtextStyle, this.chartOption.title.subtextStyle || {})
     }
   }
   aboutToAppear() {
@@ -64,7 +64,7 @@ export struct McPieChart {
   build() {
     Column() {
       Chart({
-        options: this.chartOption,
+        options: $chartOption,
         drawMcChart: drawMcPieChart,
         renderType: this.renderType,
         customTooltip: this.customTooltip,

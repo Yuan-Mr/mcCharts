@@ -11,7 +11,7 @@ export struct Chart {
   private drawMcChart: CommonChart | null = null;
   private click: Function = () => {};
   private tooltipClick: Function = () => {};
-  @ObjectLink @Watch('onCountUpdated') options: Options;
+  @Link @Watch('onCountUpdated') options: Options;
   @Link renderType: string
   @State isTooltipShow: boolean = false
   @State isZoom: boolean = false
@@ -92,6 +92,7 @@ export struct Chart {
             })
             .onActionEnd(() => {
             })
+            .tag("mccharts.pan")
         )
         .gesture(
           PinchGesture({ fingers: 2, distance: 1 })
@@ -109,6 +110,7 @@ export struct Chart {
             .onActionEnd((event: GestureEvent) => {
               this.isScale = false
             })
+            .tag("mccharts.pan")
         )
 
       if (this.isTooltipShow) {

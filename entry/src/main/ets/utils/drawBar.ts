@@ -2,15 +2,20 @@ import { Chart } from './charts'
 import { calculateNum, lerp, drawTexts, drawBreakText, maxMinSumSeparatedBySign, deepCopy, drawRoundedRect } from './index'
 import { axisLineStyle, yLineStyle, barStyle as commonBarStyle, label as commonLabel } from './defaultOption'
 import { InterfaceObj } from './chartInterface';
-let timer = null
-let transitionStart = null
-let transitionDuration = 800
-let previousData = []
+// let timer = null
+// let transitionStart = null
+// let transitionDuration = 800
+// let previousData = []
 /**
  * 柱状图
  */
 class DrawBar extends Chart {
   private zeroScaleY;
+  private animationInfo = {
+    timer: null,
+    transitionStart: null,
+    transitionDuration: 800
+  }
   constructor () {
     super('bar');
   }
@@ -114,15 +119,15 @@ class DrawBar extends Chart {
     ctx.restore()
   }
   animate() {
-    timer = setTimeout(() => {
+    this.animationInfo.timer = setTimeout(() => {
       this.animate()
     }, 16);
-    if (transitionStart !== null) {
+    if (this.animationInfo.transitionStart !== null) {
       this.drawBars();
-      if (Date.now() - transitionStart > transitionDuration) {
+      if (Date.now() - this.animationInfo.transitionStart > this.animationInfo.transitionDuration) {
         // 过渡完成，重置transitionStart
-        transitionStart = null;
-        previousData = deepCopy(this.animateArr);
+        this.animationInfo.transitionStart = null;
+        this.previousData = deepCopy(this.animateArr);
       }
     }
   }
@@ -134,8 +139,8 @@ class DrawBar extends Chart {
       nameH = this.ctx.measureText(this.yAxis.name).height; // 获取文字的长度
     }
     const ydis = this.H - this.cPaddingB - this.cPaddingT - nameH
-    const elapsed = Date.now() - transitionStart;
-    const progress = Math.min(elapsed / transitionDuration, 1); // 进度，范围[0,1]
+    const elapsed = Date.now() - this.animationInfo.transitionStart;
+    const progress = Math.min(elapsed / this.animationInfo.transitionDuration, 1); // 进度，范围[0,1]
     this.ctx.clearRect(0, 0, this.W, this.H);
     // ctx.save()
     // ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
@@ -149,9 +154,10 @@ class DrawBar extends Chart {
     ctx.translate(that.cPaddingL, (that.H - that.cPaddingB))
     for (let i = 0, item, oldItem; i < this.animateArr.length; i++) {
       item = that.animateArr[i];
-      oldItem = previousData[i] || {data: []};
+      oldItem = this.previousData[i] || {data: []};
       if (item.hide) continue;
-      const { color, barW, stack, borderRadius } = item
+      const { color, barW, stack, borderRadius, label = {} } = item
+      const { show: labelShow = commonLabel.show } = label
       item.data.forEach((obj, index) => {
         let oldValue = this.renderType !== 'init' && oldItem.data[index] ? oldItem.data[index].h || 0 : 0;
         oldValue = oldValue ? -(oldValue + obj.zeroScaleY) : 0
@@ -160,26 +166,28 @@ class DrawBar extends Chart {
         const currentValue = lerp(oldValue, h, progress);
         const x = obj.x - barW / 2;
         h = currentValue
-        this.drawLabel(item, index)
         this.setCtxStyle({
           fillStyle: color
         })
         drawRoundedRect(ctx, x, y, barW, h, borderRadius ? [barW / 2, barW / 2, 0, 0] : [])
+        if (labelShow) {
+          this.drawLabel(item, index)
+        }
       });
     }
     ctx.restore()
   }
 
   create() {
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
+    if (this.animationInfo.timer) {
+      clearTimeout(this.animationInfo.timer)
+      this.animationInfo.timer = null
     }
     // 组织数据
     this.initData();
-    transitionStart = Date.now();
+    this.animationInfo.transitionStart = Date.now();
     if (this.renderType === 'init') {
-      previousData = deepCopy(this.animateArr);
+      this.previousData = deepCopy(this.animateArr);
       // 执行动画
       this.animate();
     } else {
